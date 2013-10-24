@@ -59,8 +59,26 @@ public class NetworkSend {
 	 *	|             step               |  last 3 digits of student #  |
 	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 */
-	public byte[] createHeader(int length, String step, String psecret) {
-		// TODO: put the above information into a byte array that is aligned correctly
-		return null;
+	public byte[] createHeader(int payloadLen,int psecret,int step, int student) {
+		//not working yet!!!!
+    	byte[] header = new byte[12];
+    	byte[] payloadLen_b = new byte[4];
+    	byte[] psecret_b = new byte[4];
+    	byte[] step_b = new byte[2];
+    	byte[] student_b = new byte [2];
+    	
+    	//convert to byte
+    	payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen+12).array(); // +12 for the size of header?
+    	psecret_b=ByteBuffer.allocate(4).putInt(psecret).array();
+    	step_b=ByteBuffer.allocate(4).putInt(step).array();
+    	student_b=ByteBuffer.allocate(4).putInt(student).array();
+    	
+    	//copy to header
+    	System.arraycopy(payloadLen_b,0,header,0,4);
+    	System.arraycopy(psecret_b,0,header,4,4);
+    	System.arraycopy(step_b,2,header,8,2);
+    	System.arraycopy(student_b, 2, header, 10, 2);
+    	
+    	return header;
 	}
 }
