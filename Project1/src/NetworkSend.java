@@ -67,7 +67,7 @@ public class NetworkSend {
     	byte[] step_b = new byte[2];
     	byte[] student_b = new byte [2];
     	
-    	//convert to byte
+    	//convert to byte[]
     	payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen+12).array(); // +12 for the size of header?
     	psecret_b=ByteBuffer.allocate(4).putInt(psecret).array();
     	step_b=ByteBuffer.allocate(4).putInt(step).array();
