@@ -16,7 +16,6 @@ public class NetworkReceive {
 		byte[] buf = new byte[16];
 		socket.setSoTimeout(1000);
 		try {
-			
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 	        socket.receive(packet);
 	 
