@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /**
  * Class for handling receiving network packets.
@@ -10,22 +12,24 @@ import java.net.DatagramSocket;
  */
 public class NetworkReceive {
 
-	/**
-	 * Prepares to receive data for stage A through the given socket.
-	 * 
-	 * @param socket the DatagramSocket used to send data.
-	 */
-	public void receiveStageA(DatagramSocket socket) {
-		byte[] buffer = new byte[30]; // may need to change value
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-				
-		try {
-			socket.receive(packet);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// TODO: extract information from the received information which is now stored in packet.
-		buffer = packet.getData();
-	}
+        public static void listen(DatagramSocket socket) throws IOException{
+                byte[] buf = new byte[16];
+                socket.setSoTimeout(1000);
+                try {
+                        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                socket.receive(packet);
+         
+                // display response
+//                String received = new String(packet.getData(), 0, packet.getLength());
+                int i=1;
+                System.out.println("Data received:");
+                for (byte b : packet.getData()) {
+                             System.out.format("0x%x ", b);
+                           if(i%4==0) System.out.println();
+                             i++;
+                          }
+            }catch (SocketTimeoutException e) {
+                System.out.println("timeout");
+            }
+        }
 }
