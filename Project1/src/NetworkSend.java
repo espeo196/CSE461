@@ -17,11 +17,6 @@ public class NetworkSend {
 	
 	public DatagramSocket socket;
 	
-	
-//	public NetworkSend() {
-//		
-//	}
-	
 	/**
 	 * Sends a UDP packet containing the string "hello world."
 	 */

@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class NetworkMain {
+
 	public static final String SERVER_NAME = "bicycle.cs.washington.edu";
 	public static final int PORT = 12235;
 	public static DatagramSocket socket;
