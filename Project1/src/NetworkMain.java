@@ -5,8 +5,6 @@
  */
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class NetworkMain {
 
@@ -17,15 +15,37 @@ public class NetworkMain {
 	public static void main(String args[]) throws IOException {
 		setup();
 		NetworkSend.sendStageA(socket,serverAddress,PORT);
-		NetworkReceive.listen(socket);
+		byte[] data = NetworkReceive.listen(socket);
+		
+		
 	}
+	
+	/**
+	 * Setup the initial DatagramSocket and serverAddress.
+	 */
 	public static void setup(){
 		try {
 			socket = new DatagramSocket();
 			serverAddress = InetAddress.getByName(SERVER_NAME);
 		} catch (SocketException | UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Exception caught: " + e.getMessage());
 		}
+	}
+	
+	
+	/**
+	 * Convert the byte array to an int.
+	 *
+	 * @param b The byte array
+	 * @param offset The array offset
+	 * @return The integer
+	 */
+	public static int byteArrayToInt(byte[] b) {
+	    int value = 0;
+	    for (int i = 0; i < 4; i++) {
+	        int shift = (4 - 1 - i) * 8;
+	        value += (b[i] & 0x000000FF) << shift;
+	    }
+	    return value;
 	}
 }

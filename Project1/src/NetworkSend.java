@@ -2,8 +2,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 /**
@@ -20,15 +18,15 @@ public class NetworkSend {
 	/**
 	 * Sends a UDP packet containing the string "hello world."
 	 */
-	public static void sendStageA(DatagramSocket socket,InetAddress serverAddress, int port) {
+	public static void sendStageA(DatagramSocket socket, InetAddress serverAddress, int port) {
 		//put the string into an array and add the null terminator
 		String payload = "hello world";
-    	byte[] b =new byte[payload.getBytes().length+1];
+    	byte[] b = new byte[payload.getBytes().length+1];
     	System.arraycopy(payload.getBytes(),0,b,0,payload.getBytes().length);
-    	b[b.length-1]=0;
+    	b[b.length-1] = 0;
     	
     	//generate the header
-    	byte[] header=createHeader(b.length,0,1,856);
+    	byte[] header = createHeader(b.length,0,1,856);
     	
     	//combine the header and payload and make sure it is aligned on a 4-byte boundary
     	byte[] message=new byte[(int) (4*(Math.ceil((header.length+b.length)/4.0)))];
@@ -40,8 +38,36 @@ public class NetworkSend {
 		try {
 			socket.send(packet);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("IOException caught: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Sends num amount of UDP packets of length len+4 consisting of 0s. 
+	 * 
+	 */
+	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int port, int num, int len, int secret) {
+		byte[] header = createHeader(len+4, secret, 1, 856);
+		
+		// TODO: listen for ack for each transmission with a timeout of .5 seconds
+		// Retransmit if timeout occurs without an ack.
+		for(int i = 0; i <= num; i++) {
+			// transmit packet
+			byte[] data = new byte[len+4];
+			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
+			byte[] payload = new byte[len];
+						
+			System.arraycopy(header, 0, data, 0, header.length);
+			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
+			System.arraycopy(payload, 0, data, header.length + packet_id.length, payload.length);
+			
+			DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress, port);
+			
+			try {
+				socket.send(packet);
+			} catch (IOException e) {
+				System.out.println("IOException caught: " + e.getMessage());
+			}
 		}
 	}
 	
