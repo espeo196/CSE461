@@ -19,22 +19,14 @@ public class NetworkReceive {
 	 * @throws IOException
 	 */
 	public static byte[] listen(DatagramSocket socket, int timeout) throws IOException{
-		byte[] buf = new byte[16];
+		byte[] buf = new byte[28];
 		socket.setSoTimeout(timeout);
 		try {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 	        socket.receive(packet);
 	 	        
 	        // Print received data for debugging purposes
-	        int i = 1;
-	        System.out.println("Data received:");
-	        for (byte b : packet.getData()) {
-	        	System.out.format("0x%x ", b);
-	        	if(i%4 == 0) {
-	        		System.out.println();
-	        		i++;
-	        	}
-	  		}
+	        NetworkMain.printPacket(buf, "Data received:");
 	        return packet.getData();
 	        
 	    } catch (SocketTimeoutException e) {

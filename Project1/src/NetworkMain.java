@@ -16,8 +16,10 @@ public class NetworkMain {
 		setup();
 		NetworkSend.sendStageA(socket,serverAddress,PORT);
 		byte[] dataA = NetworkReceive.listen(socket, 1000);
-		NetworkSend.sendStageB(socket, serverAddress, 2358, byteArrayToInt(dataA, 0), byteArrayToInt(dataA, 4), byteArrayToInt(dataA, 12));
+		printPacket(dataA,"----------------stage a result----------------");
+		NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
 		byte[] dataB = NetworkReceive.listen(socket, 1000);
+		printPacket(dataA,"----------------stage b result----------------");
 		
 	}
 	
@@ -33,7 +35,6 @@ public class NetworkMain {
 		}
 	}
 	
-	
 	/**
 	 * Convert the byte array to an int.
 	 *
@@ -48,5 +49,30 @@ public class NetworkMain {
 	        value += (b[i + offset] & 0x000000FF) << shift;
 	    }
 	    return value;
+	}
+	/**
+	 * Print out the content of the packet
+	 *
+	 * @param packet content of the packet
+	 * @param title title shown
+	 * @return void
+	 */
+	public static void printPacket(byte[]packet,String title){
+		System.out.println(title);
+		System.out.println("Packet Header:");
+		for (int j=0;j<12;j++) {
+	 		   System.out.format("0x%x ", packet[j]);
+	 		  if((j+1)%4 == 0) {
+	        		System.out.println();
+	        	}
+ 		}
+		System.out.println("Packet Content:");
+		for (int j=12;j<28;j++) {
+	 		   System.out.format("0x%x ", packet[j]);
+	 		  if((j+1)%4 == 0) {
+	        		System.out.println();
+	        	}
+		}
+		System.out.println("---------------");
 	}
 }
