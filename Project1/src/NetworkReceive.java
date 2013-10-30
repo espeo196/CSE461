@@ -18,19 +18,19 @@ public class NetworkReceive {
 	 * @return a byte array containing the received data or null if a timeout occurs.
 	 * @throws IOException
 	 */
-	public static byte[] listen(DatagramSocket socket) throws IOException{
+	public static byte[] listen(DatagramSocket socket, int timeout) throws IOException{
 		byte[] buf = new byte[16];
-		socket.setSoTimeout(1000);
+		socket.setSoTimeout(timeout);
 		try {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 	        socket.receive(packet);
 	 	        
 	        // Print received data for debugging purposes
-	        int i=1;
+	        int i = 1;
 	        System.out.println("Data received:");
 	        for (byte b : packet.getData()) {
 	        	System.out.format("0x%x ", b);
-	        	if(i%4==0) {
+	        	if(i%4 == 0) {
 	        		System.out.println();
 	        		i++;
 	        	}
@@ -41,5 +41,5 @@ public class NetworkReceive {
 	        System.out.println("timeout");
 	    }
 		return null; // no data to return
-	}
+	}	
 }

@@ -49,11 +49,10 @@ public class NetworkSend {
 	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int port, int num, int len, int secret) {
 		byte[] header = createHeader(len+4, secret, 1, 856);
 		
-		// TODO: listen for ack for each transmission with a timeout of .5 seconds
 		// Retransmit if timeout occurs without an ack.
-		for(int i = 0; i <= num; i++) {
+		for(int i = 0; i < num; i++) {
 			// transmit packet
-			byte[] data = new byte[len+4];
+			byte[] data = new byte[header.length + len + 4];
 			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
 			byte[] payload = new byte[len];
 						
@@ -65,6 +64,11 @@ public class NetworkSend {
 			
 			try {
 				socket.send(packet);
+
+				// listen for ack for each transmission with a timeout of .5 seconds
+				while(NetworkReceive.listen(socket, 500) == null) {
+					socket.send(packet);
+				}
 			} catch (IOException e) {
 				System.out.println("IOException caught: " + e.getMessage());
 			}
@@ -91,7 +95,7 @@ public class NetworkSend {
     	byte[] student_b = new byte [2];
     	
     	//convert to byte[]
-    	payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen).array(); // +12 for the size of header?
+    	payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen).array();
     	psecret_b=ByteBuffer.allocate(4).putInt(psecret).array();
     	step_b=ByteBuffer.allocate(4).putInt(step).array();
     	student_b=ByteBuffer.allocate(4).putInt(student).array();
