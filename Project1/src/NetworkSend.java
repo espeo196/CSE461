@@ -46,20 +46,20 @@ public class NetworkSend {
 	 * Sends num amount of UDP packets of length len+4 consisting of 0s. 
 	 * 
 	 */
-	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int port, int num, int len, int secret) {
+	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress,int num, int len, int port, int secret) {
 		byte[] header = createHeader(len+4, secret, 1, 856);
 		
 		// Retransmit if timeout occurs without an ack.
 		for(int i = 0; i < num; i++) {
 			// transmit packet
-			byte[] data = new byte[header.length + len + 4];
+			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
 			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
 			byte[] payload = new byte[len];
+			for(int j=0;j<len;j++)payload[j]=0x0;
 						
 			System.arraycopy(header, 0, data, 0, header.length);
 			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
 			System.arraycopy(payload, 0, data, header.length + packet_id.length, payload.length);
-			
 			DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress, port);
 			
 			try {
