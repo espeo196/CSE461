@@ -16,7 +16,7 @@ public class NetworkMain {
 		setup();
 		NetworkSend.sendStageA(socket,serverAddress,PORT);
 		byte[] dataA = NetworkReceive.listen(socket, 1000);
-		NetworkSend.sendStageB(socket, serverAddress, 2358, byteArrayToInt(dataA, 0), byteArrayToInt(dataA, 4), byteArrayToInt(dataA, 12));
+		NetworkSend.sendStageB(socket, serverAddress, 762, byteArrayToInt(dataA, 0), byteArrayToInt(dataA, 4), byteArrayToInt(dataA, 12));
 		byte[] dataB = NetworkReceive.listen(socket, 1000);
 		
 	}
