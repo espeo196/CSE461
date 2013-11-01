@@ -12,29 +12,34 @@ public class NetworkMain {
 	public static final int PORT = 12235;
 	public static DatagramSocket socket;
 	public static InetAddress serverAddress;
+	public static BufferedReader reader;
+	public static Socket tcpSocket;
 	public static void main(String args[]) throws IOException {
-		setup();
+		setupAB();
 		NetworkSend.sendStageA(socket,serverAddress,PORT);
 		byte[] dataA = NetworkReceive.listen(socket, 1000);
 		printPacket(dataA,"----------------stage a result----------------");
 		NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
 		byte[] dataB = NetworkReceive.listen(socket, 1000);
-		printPacket(dataA,"----------------stage b result----------------");
-		
+		printPacket(dataB,"----------------stage b result----------------");
+		NetworkSend.sendStageC(tcpSocket,serverAddress,byteArrayToInt(dataB, 12),byteArrayToInt(dataB, 16));
+		byte[] dataC=NetworkReceive.listenTCP(SERVER_NAME, 1000,byteArrayToInt(dataB, 12)); 
+		NetworkMain.printPacket(dataC, "----------------stage c result----------------");
 	}
 	
 	/**
 	 * Setup the initial DatagramSocket and serverAddress.
 	 */
-	public static void setup(){
+	public static void setupAB(){
 		try {
+			//for statge a b
 			socket = new DatagramSocket();
 			serverAddress = InetAddress.getByName(SERVER_NAME);
-		} catch (SocketException | UnknownHostException e) {
+		} catch (IOException e) {
 			System.out.println("Exception caught: " + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Convert the byte array to an int.
 	 *

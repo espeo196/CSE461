@@ -1,7 +1,13 @@
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 /**
@@ -72,6 +78,18 @@ public class NetworkSend {
 			} catch (IOException e) {
 				System.out.println("IOException caught: " + e.getMessage());
 			}
+		}
+	}
+	/**
+	 * Sends nothing =D.
+	 * 
+	 */
+	public static void sendStageC(Socket tcpSocket,InetAddress serverAddress,int port, int secret) throws IOException{
+	try {
+		
+		} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
 		}
 	}
 	
