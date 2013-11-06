@@ -26,7 +26,7 @@ public class NetworkReceive {
 	        socket.receive(packet);
 	 	        
 	        // Print received data for debugging purposes
-	        NetworkMain.printPacket(buf, "Data received:");
+	        // NetworkMain.printPacket(buf, "Data received:");
 	        return packet.getData();
 	        
 	    } catch (SocketTimeoutException e) {

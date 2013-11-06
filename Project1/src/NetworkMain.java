@@ -21,6 +21,16 @@ public class NetworkMain {
 		byte[] dataB = NetworkReceive.listen(socket, 1000);
 		printPacket(dataA,"----------------stage b result----------------");
 		
+		
+		Socket tcpSocket = new Socket(SERVER_NAME, byteArrayToInt(dataB, 12));
+		BufferedReader serverReader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+		
+		if(serverReader.ready()) {
+			char[] readC = new char[36];
+			serverReader.read(readC);
+			System.out.println(readC.toString());
+			//printPacket(dataC, "---------------stage c result ----------------");			
+		}
 	}
 	
 	/**
