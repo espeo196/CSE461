@@ -12,39 +12,40 @@ public class NetworkMain {
 	public static final int PORT = 12235;
 	public static DatagramSocket socket;
 	public static InetAddress serverAddress;
+	public static BufferedReader reader;
+	public static Socket tcpSocket;
 	public static void main(String args[]) throws IOException {
-		setup();
+		setupAB();
 		NetworkSend.sendStageA(socket,serverAddress,PORT);
 		byte[] dataA = NetworkReceive.listen(socket, 1000);
 		printPacket(dataA,"----------------stage a result----------------");
 		NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
 		byte[] dataB = NetworkReceive.listen(socket, 1000);
-		printPacket(dataA,"----------------stage b result----------------");
-		
+		printPacket(dataB,"----------------stage b result----------------");
 		
 		Socket tcpSocket = new Socket(SERVER_NAME, byteArrayToInt(dataB, 12));
-		BufferedReader serverReader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+		byte[] dataC = NetworkReceive.listenTCP(tcpSocket, 1000); 
+		NetworkMain.printPacket(dataC, "----------------stage c result----------------");
+		NetworkSend.sendStageD(tcpSocket, serverAddress, byteArrayToInt(dataC, 12), byteArrayToInt(dataC, 16), byteArrayToInt(dataC, 20));
+		byte[] dataD = NetworkReceive.listenTCP(tcpSocket, 1000);
+		// NetworkMain.printPacket(dataD, "----------------stage d result----------------"); 
 		
-		if(serverReader.ready()) {
-			char[] readC = new char[36];
-			serverReader.read(readC);
-			System.out.println(readC.toString());
-			//printPacket(dataC, "---------------stage c result ----------------");			
-		}
+		tcpSocket.close();
 	}
 	
 	/**
 	 * Setup the initial DatagramSocket and serverAddress.
 	 */
-	public static void setup(){
+	public static void setupAB(){
 		try {
+			//for statge a b
 			socket = new DatagramSocket();
 			serverAddress = InetAddress.getByName(SERVER_NAME);
-		} catch (SocketException | UnknownHostException e) {
+		} catch (IOException e) {
 			System.out.println("Exception caught: " + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Convert the byte array to an int.
 	 *

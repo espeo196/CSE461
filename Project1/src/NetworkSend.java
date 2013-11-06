@@ -1,7 +1,15 @@
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 /**
@@ -55,7 +63,9 @@ public class NetworkSend {
 			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
 			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
 			byte[] payload = new byte[len];
-			for(int j=0;j<len;j++)payload[j]=0x0;
+			for(int j=0; j<len; j++) {
+				payload[j] = 0x0;
+			}
 						
 			System.arraycopy(header, 0, data, 0, header.length);
 			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
@@ -73,6 +83,41 @@ public class NetworkSend {
 				System.out.println("IOException caught: " + e.getMessage());
 			}
 		}
+	}
+	
+	/**
+	 * Sends num payloads of length len containing bytes  set to the character c.
+	 * 
+	 * @param tcpSocket
+	 * @param serverAddress
+	 * @param secret
+	 * @param num number of packets to send
+	 * @param len length of each packet payload
+	 * @throws IOException
+	 */
+	public static void sendStageD(Socket tcpSocket, InetAddress serverAddress, int num, int len, int secret) throws IOException {
+		byte[] header = createHeader(len+4, secret, 1, 856);
+		
+		PrintStream out = new PrintStream(tcpSocket.getOutputStream());
+		
+		// Retransmit if timeout occurs without an ack.
+		for(int i = 0; i < num; i++) {
+			// transmit packet
+			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
+			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
+			byte[] payload = new byte[len+1];
+			
+			// fill payload with the character 'c'
+			for(int j=0; j < len; j++) {
+				payload[j] = 'c';
+			}
+			
+			System.arraycopy(header, 0, data, 0, header.length);
+			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
+			System.arraycopy(payload, 0, data, header.length + packet_id.length, payload.length);
+
+			out.print(data);
+		}	
 	}
 	
 	/**
