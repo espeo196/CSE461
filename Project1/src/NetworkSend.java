@@ -54,7 +54,7 @@ public class NetworkSend {
 	 * Sends num amount of UDP packets of length len+4 consisting of 0s. 
 	 * 
 	 */
-	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress,int num, int len, int port, int secret) {
+	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int num, int len, int port, int secret) {
 		byte[] header = createHeader(len+4, secret, 1, 856);
 		
 		// Retransmit if timeout occurs without an ack.
@@ -63,7 +63,7 @@ public class NetworkSend {
 			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
 			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
 			byte[] payload = new byte[len];
-			for(int j=0; j<len; j++) {
+			for(int j = 0; j < len; j++) {
 				payload[j] = 0x0;
 			}
 						
@@ -95,28 +95,26 @@ public class NetworkSend {
 	 * @param len length of each packet payload
 	 * @throws IOException
 	 */
-	public static void sendStageD(Socket tcpSocket, InetAddress serverAddress, int num, int len, int secret) throws IOException {
+	public static void sendStageD(Socket tcpSocket, InetAddress serverAddress, int num, int len, int secret, byte c) throws IOException {
 		byte[] header = createHeader(len+4, secret, 1, 856);
 		
-		PrintStream out = new PrintStream(tcpSocket.getOutputStream());
+		DataOutputStream out = new DataOutputStream(tcpSocket.getOutputStream());
 		
 		// Retransmit if timeout occurs without an ack.
 		for(int i = 0; i < num; i++) {
 			// transmit packet
 			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
-			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
-			byte[] payload = new byte[len+1];
+			byte[] payload = new byte[len];
 			
 			// fill payload with the character 'c'
 			for(int j=0; j < len; j++) {
-				payload[j] = 'c';
+				payload[j] = c;
 			}
 			
 			System.arraycopy(header, 0, data, 0, header.length);
-			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
-			System.arraycopy(payload, 0, data, header.length + packet_id.length, payload.length);
+			System.arraycopy(payload, 0, data, header.length, payload.length);
 
-			out.print(data);
+			out.write(data);
 		}	
 	}
 	

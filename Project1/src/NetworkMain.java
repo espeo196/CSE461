@@ -26,7 +26,7 @@ public class NetworkMain {
 		Socket tcpSocket = new Socket(SERVER_NAME, byteArrayToInt(dataB, 12));
 		byte[] dataC = NetworkReceive.listenTCP(tcpSocket, 1000); 
 		NetworkMain.printPacket(dataC, "----------------stage c result----------------");
-		NetworkSend.sendStageD(tcpSocket, serverAddress, byteArrayToInt(dataC, 12), byteArrayToInt(dataC, 16), byteArrayToInt(dataC, 20));
+		NetworkSend.sendStageD(tcpSocket, serverAddress, byteArrayToInt(dataC, 12), byteArrayToInt(dataC, 16), byteArrayToInt(dataC, 20), dataC[24]);
 		byte[] dataD = NetworkReceive.listenTCP(tcpSocket, 1000);
 		// NetworkMain.printPacket(dataD, "----------------stage d result----------------"); 
 		
