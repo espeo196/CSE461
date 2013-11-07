@@ -8,7 +8,8 @@ import java.net.SocketTimeoutException;
 /**
  * Class for handling receiving network packets.
  * 
- *
+ * @author Nicholas Johnson, Benjamin Chan
+ * 
  */
 public class NetworkReceive {
 
@@ -20,15 +21,13 @@ public class NetworkReceive {
 	 * @return a byte array containing the received data or null if a timeout occurs.
 	 * @throws IOException
 	 */
-	public static byte[] listen(DatagramSocket socket, int timeout) throws IOException{
+	public static byte[] listen(DatagramSocket socket, int timeout) throws IOException {
 		byte[] buf = new byte[28];
 		socket.setSoTimeout(timeout);
 		try {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 	        socket.receive(packet);
-	 	        
-	        // Print received data for debugging purposes
-	        // NetworkMain.printPacket(buf, "Data received:");
+	        
 	        return packet.getData();
 	        
 	    } catch (SocketTimeoutException e) {
@@ -36,17 +35,17 @@ public class NetworkReceive {
 	    }
 		return null; // no data to return
 	}
+	
 	/**
 	 * Set up a TCP socket and Listens for traffic from it
 	 * Null is returned if a timeout occurs.
 	 * 
 	 * @param serverAddress the destination Server Address
-	 * @param timeout
-	 * @param port TCP port
+	 * @param timeout int milliseconds before the socket expires
 	 * @return a byte array containing the received data or null if a timeout occurs.
 	 * @throws IOException
 	 */
-	public static byte[] listenTCP(Socket tcpSocket, int timeout) throws IOException{
+	public static byte[] listenTCP(Socket tcpSocket, int timeout) throws IOException {
 		byte[] buf = new byte[28];
 		char[] buf2= new char[28]; 
 		tcpSocket.setSoTimeout(timeout);

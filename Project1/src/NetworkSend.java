@@ -1,45 +1,40 @@
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 /**
  * Class for sending network packets.
- * @author espeo
+ * 
+ * @author Nicholas Johnson, Benjamin Chan
  *
  */
-
 public class NetworkSend {
-	
-	
-	public DatagramSocket socket;
-	
+		
 	/**
 	 * Sends a UDP packet containing the string "hello world."
+	 * 
+	 * @param socket DatagramSocket to send packets through.
+	 * @param serverAddress InetAddress of the receiving server.
+	 * @param port int value of the port to connect and send data to.
 	 */
 	public static void sendStageA(DatagramSocket socket, InetAddress serverAddress, int port) {
-		//put the string into an array and add the null terminator
+		// put the string into an array and add the null terminator
 		String payload = "hello world";
     	byte[] b = new byte[payload.getBytes().length+1];
-    	System.arraycopy(payload.getBytes(),0,b,0,payload.getBytes().length);
+    	System.arraycopy(payload.getBytes(), 0, b, 0, payload.getBytes().length);
     	b[b.length-1] = 0;
     	
     	//generate the header
-    	byte[] header = createHeader(b.length,0,1,856);
+    	byte[] header = createHeader(b.length, 0, 1, 856);
     	
     	//combine the header and payload and make sure it is aligned on a 4-byte boundary
     	byte[] message=new byte[(int) (4*(Math.ceil((header.length+b.length)/4.0)))];
     	System.arraycopy(header, 0, message, 0, header.length);
-    	System.arraycopy(b,0,message,header.length,b.length);
+    	System.arraycopy(b, 0, message, header.length, b.length);
     	
 		DatagramPacket packet = new DatagramPacket(message, message.length, serverAddress, port);
 		
@@ -51,10 +46,19 @@ public class NetworkSend {
 	}
 	
 	/**
-	 * Sends num amount of UDP packets of length len+4 consisting of 0s. 
+	 * Sends num packets with payload of length len using the given socket. Each packet 
+	 * is resent if a response (ACK) is not received from the server within 500 milliseconds.
 	 * 
+	 * @param socket DatagramSocket to send packets through.
+	 * @param serverAddress InetAddress of the receiving server.
+	 * @param num int number of packets to send.
+	 * @param len int length of each packet payload
+	 * @param port int value of the port to connect and send data to.
+	 * @param secret int value to put in each packet header
 	 */
-	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int num, int len, int port, int secret) {
+	public static void sendStageB(DatagramSocket socket, InetAddress serverAddress, int num, 
+			int len, int port, int secret) {
+		
 		byte[] header = createHeader(len+4, secret, 1, 856);
 		
 		// Retransmit if timeout occurs without an ack.
@@ -63,10 +67,12 @@ public class NetworkSend {
 			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
 			byte[] packet_id = ByteBuffer.allocate(4).putInt(i).array();
 			byte[] payload = new byte[len];
+			
 			for(int j = 0; j < len; j++) {
 				payload[j] = 0x0;
 			}
 						
+			// copy the header, packet id, and payload into the same buffer to be sent.
 			System.arraycopy(header, 0, data, 0, header.length);
 			System.arraycopy(packet_id, 0, data, header.length, packet_id.length);
 			System.arraycopy(payload, 0, data, header.length + packet_id.length, payload.length);
@@ -86,24 +92,25 @@ public class NetworkSend {
 	}
 	
 	/**
-	 * Sends num payloads of length len containing bytes  set to the character c.
+	 * Sends num payloads of length len containing payloads consisting of c.
 	 * 
-	 * @param tcpSocket
-	 * @param serverAddress
-	 * @param secret
+	 * @param tcpSocket Socket to send data through
+	 * @param secret int value to put in each packet header
 	 * @param num number of packets to send
 	 * @param len length of each packet payload
 	 * @throws IOException
 	 */
-	public static void sendStageD(Socket tcpSocket, InetAddress serverAddress, int num, int len, int secret, byte c) throws IOException {
-		byte[] header = createHeader(len+4, secret, 1, 856);
+	public static void sendStageD(Socket tcpSocket, int num, int len, int secret, byte c) 
+			throws IOException {
 		
+		byte[] header = createHeader(len, secret, 1, 856);
+		
+		// set up output stream for sending bytes
 		DataOutputStream out = new DataOutputStream(tcpSocket.getOutputStream());
 		
-		// Retransmit if timeout occurs without an ack.
+		// create and transmit each packet
 		for(int i = 0; i < num; i++) {
-			// transmit packet
-			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len + 4)/4.0)))];
+			byte[] data = new byte[(int) (4*(Math.ceil((header.length + len)/4.0)))];
 			byte[] payload = new byte[len];
 			
 			// fill payload with the character 'c'
