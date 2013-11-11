@@ -1,3 +1,5 @@
+package Project1;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -120,7 +122,6 @@ public class NetworkSend {
 			
 			System.arraycopy(header, 0, data, 0, header.length);
 			System.arraycopy(payload, 0, data, header.length, payload.length);
-
 			out.write(data);
 		}	
 	}
