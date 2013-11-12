@@ -2,6 +2,7 @@ package Project2;
 
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * Creates Packets 
@@ -11,24 +12,20 @@ import java.nio.ByteBuffer;
 public class PacketCreater {
 	public static final int HEADER_LENGTH=12;
 	
-	public static byte[] stageA(){
-		byte[] data = new byte[(int) (4*(Math.ceil((HEADER_LENGTH + 16 + 4)/4.0)))];
-		byte[] header = createHeader(16, receivedData[4], 1, 856);
-		byte[] payload = new byte[16];
-		
+	public static byte[] stageA(int psecret,int studentID){
+		byte[] payload= new byte[16];
 		// TODO: should all be randomly generated and put in their correct places
 		payload[3] = 5;
 		payload[7] = 10;
 		payload[11] = (byte) 22222;
-		byte[] secret = generateSecret();
-		System.arraycopy(secret, 0, payload, 12, secret.length);
-		
-		// copy the header, packet id, and payload into the same buffer to be sent.
+		return createPacket(psecret,2,studentID,payload);
+	}
+	public static byte[] createPacket(int psecret,int step,int studentID,byte[] payload){
+		byte[] data = new byte[(int) (4*(Math.ceil((HEADER_LENGTH + payload.length)/4.0)))];
+		byte[] header = createHeader(payload.length, psecret, step, studentID);
 		System.arraycopy(header, 0, data, 0, header.length);
 		System.arraycopy(payload, 0, data, header.length, payload.length);
-		
-		
-		return null;
+		return data;
 	}
 	/**
 	 * Creates the packet header with the following format:
@@ -64,14 +61,7 @@ public class PacketCreater {
     	return header;
 	}
 	
-	/**
-	 * Randomly generates a 4 byte secret and returns it
-	 * @return byte[] of length 4 containing a randomly generated secret
-	 */
-	private static byte[] generateSecret() {
-		// TODO: should be randomly generated
-		byte[] secret = {0, 1, 2, 3};
-		
-		return secret;
-	}
+
+	
+
 }
