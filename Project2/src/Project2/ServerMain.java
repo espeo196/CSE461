@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * 
@@ -14,9 +15,18 @@ import java.util.Arrays;
 public class ServerMain {
 
 	public static final int HEADER_LENGTH = 12;
+	public static int studentID;
+	public static int psecretInit;
+	public static int psecretA;
+	public static int psecretB;
+	public static int psecretC;
+	public static int psecretD;
 	
 	public static void stageA() {
 		// establish server socket
+		int studentID=-1;
+		psecretInit=0;
+		psecretA=generateSecret();
 		try {
 			DatagramSocket socket = new DatagramSocket(12235);
 			
@@ -27,11 +37,14 @@ public class ServerMain {
 			socket.receive(packet);
 			
 			byte[] receivedData = packet.getData();
-			byte[] studentID = new byte[4];
+			
+			if(receivedData.length>12){
+				studentID=byteArrayToInt(Arrays.copyOfRange(receivedData, 10, 12),0);
+			}
 			// verify header
-			if(PacketVerifier.stageA(receivedData)) {
-				studentID=Arrays.copyOfRange(receivedData, 10, 12);
-				byte[] data=PacketCreater.stageA();
+			if(studentID!=-1&&PacketVerifier.stageA(receivedData,studentID,psecretInit)) {
+				
+				byte[] data=PacketCreater.stageA(studentID,psecretA);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 				socket.send(sendPacket);
 			}
@@ -43,5 +56,30 @@ public class ServerMain {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * Convert the byte array to an int.
+	 *
+	 * @param b The byte array
+	 * @param offset The array offset
+	 * @return The integer
+	 */
+	public static int byteArrayToInt(byte[] b, int offset) {
+	    int value = 0;
+	    for (int i = 0; i < 4; i++) {
+	        int shift = (4 - 1 - i) * 8;
+	        value += (b[i + offset] & 0x000000FF) << shift;
+	    }
+	    return value;
+	}
+	
+	/**
+	 * Randomly generates a 4 byte secret and returns it
+	 * @return a 4 byte integer containing a randomly generated secret
+	 */
+	private static int generateSecret() {
+		Random random=new Random();
+		int randomNum=random.nextInt(2147483647); //largest number in int
+		return randomNum;
 	}
 }

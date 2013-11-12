@@ -18,7 +18,6 @@ public class ServerClient {
 	 */
 	public static void main(String[] args) {
 		ServerMain.stageA();
-		//NetworkMain.performStageAB(socket, serverAddress);
 	}
 
 }
