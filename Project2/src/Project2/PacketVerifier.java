@@ -56,6 +56,12 @@ public class PacketVerifier {
 		return false;
 		
 	}
+	/**
+	 * Compare two arrays
+	 * @param array1
+	 * @param array2
+	 * @return true when they contain the same value
+	 */
 	private static boolean compareArrays(byte[] array1, byte[] array2){
 		if (array1 == null && array2 == null)
 			return false;
@@ -71,7 +77,15 @@ public class PacketVerifier {
 		
 		return true;
 	}
-	
+	/**
+	 * Verify a Packet 
+	 * @param packet			received packet
+	 * @param payloadContent	expected payload content
+	 * @param psecret			expected psecret
+	 * @param step				expected step of the stage
+	 * @param studentID			expected studentID
+	 * @return
+	 */
 	private static boolean verifyPacket(byte[] packet,byte[] payloadContent,int psecret,int step, int studentID){
 		if(packet.length!=payloadContent.length+HEADER_LENGTH){
 			return false;

@@ -22,6 +22,11 @@ public class ServerMain {
 	public static int psecretC;
 	public static int psecretD;
 	
+	/**
+	 * Perform stage A
+	 * receive a packet from client
+	 * transmit a packet if it the client's packet is valid 
+	 */
 	public static void stageA() {
 		// establish server socket
 		int studentID=-1;
@@ -35,14 +40,15 @@ public class ServerMain {
 			// receive request
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			socket.receive(packet);
-			
+			//receive data
 			byte[] receivedData = packet.getData();
 			
+			//get student id
 			if(receivedData.length>12){
 				studentID=byteArrayToInt(Arrays.copyOfRange(receivedData, 10, 12),0);
 			}
 			// verify header
-			if(studentID!=-1&&PacketVerifier.stageA(receivedData,studentID,psecretInit)) {
+			if(studentID!=-1 && PacketVerifier.stageA(receivedData,studentID,psecretInit)) {
 				
 				byte[] data=PacketCreater.stageA(studentID,psecretA);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
