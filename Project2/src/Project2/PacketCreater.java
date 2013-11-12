@@ -5,13 +5,17 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 
 /**
- * Creates Packets 
- * @author benjamin
+ * Creates packets for different stages
  *
  */
 public class PacketCreater {
 	public static final int HEADER_LENGTH=12;
-	
+	/**
+	 * Generate packet for stageA
+	 * @param psecret
+	 * @param studentID
+	 * @return
+	 */
 	public static byte[] stageA(int psecret,int studentID){
 		byte[] payload= new byte[16];
 		// TODO: should all be randomly generated and put in their correct places
