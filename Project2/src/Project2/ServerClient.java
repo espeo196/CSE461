@@ -10,14 +10,13 @@ import Project1.NetworkSend;
  *
  */
 public class ServerClient {
-	
-	ServerMain server;
-	
+		
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		ServerMain.stageA();
+		ServerMain server = new ServerMain();
+		server.stageA();
 	}
 
 }
