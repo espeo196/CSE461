@@ -1,5 +1,9 @@
 package Project2;
 
+/**
+ * Basic class for holding values that need to persist.
+ *
+ */
 public class ValuesHolder {
 	public int numA;
 	public int lenA;

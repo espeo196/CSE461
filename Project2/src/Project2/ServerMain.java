@@ -15,15 +15,15 @@ public class ServerMain {
 
 	public static final int HEADER_LENGTH = 12;
 	public static ValuesHolder values;
-	public static int studentID;
+	public static byte[] studentID;
 	public static int psecretInit;
 	
 	public ServerMain() {
+		studentID = new byte[2];
+		
 		Random rand = new Random();
 		values = new ValuesHolder();
-		
-		// TODO: should all be randomly generated and put in their correct places
-		
+				
 		values.lenA = rand.nextInt(20);
 		values.numA = rand.nextInt(20);
 		values.lenC = rand.nextInt(20);
@@ -34,8 +34,9 @@ public class ServerMain {
 		values.secretC = generateSecret();
 		values.secretD = generateSecret();
 		
-		values.tcp_portB = 2222;
-		values.udp_portA = 2222;
+		// TODO: needs to be random and in correct valid range
+		values.tcp_portB = 12235;
+		values.udp_portA = 12235;
 	}
 	
 	/**
@@ -45,7 +46,6 @@ public class ServerMain {
 	 */
 	public void stageA() {
 		// establish server socket
-		studentID = -1;
 		psecretInit = 0;
 		
 		try {
@@ -56,15 +56,11 @@ public class ServerMain {
 			// receive request
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			socket.receive(packet);
-			//receive data
 			byte[] receivedData = packet.getData();
 			
-			//get student id
-			if(receivedData.length > 12) {
-				studentID = byteArrayToInt(Arrays.copyOfRange(receivedData, 10, 12), 0);
-			}
-			// verify header
-			if(studentID != -1 && PacketVerifier.verifyStageA(receivedData, studentID, psecretInit)) {
+			// verify header and that the received packet is long enough
+			if(receivedData.length > 12 && PacketVerifier.verifyStageA(receivedData, psecretInit)) {
+				studentID = Arrays.copyOfRange(receivedData, 10, 12);		
 				
 				byte[] data = PacketCreater.stageAPacket(studentID, values.secretA);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
@@ -96,17 +92,14 @@ public class ServerMain {
 					byte[] receivedData = packet.getData();
 					senderAddress = packet.getAddress();
 					senderPort = packet.getPort();
-					
-					
-					if(receivedData.length > 12) {
-						studentID = byteArrayToInt(Arrays.copyOfRange(receivedData, 10, 12), 0);
-					}
+
 					// extract packet_id
-					if(PacketVerifier.verifyStageB(receivedData, studentID, values.secretA, i)) {
-						
-							byte[] data = PacketCreater.stageBAck(studentID, i);
-							DatagramPacket sendPacket = new DatagramPacket(data, data.length, senderAddress, senderPort);
-							socket.send(sendPacket);
+					if(receivedData.length > 12 && PacketVerifier.verifyStageB(receivedData, values.secretA, i)) {
+						studentID = Arrays.copyOfRange(receivedData, 10, 12);		
+					
+						byte[] data = PacketCreater.stageBAck(studentID, i);
+						DatagramPacket sendPacket = new DatagramPacket(data, data.length, senderAddress, senderPort);
+						socket.send(sendPacket);
 					}
 				}				
 			}
