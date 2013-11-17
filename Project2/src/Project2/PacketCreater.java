@@ -97,4 +97,9 @@ public class PacketCreater {
 		}
 		return b;
 	}
+
+	public static byte[] stageCPacket(byte[] studentID, int secretC) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

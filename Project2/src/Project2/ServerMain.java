@@ -1,8 +1,11 @@
 package Project2;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -73,6 +76,10 @@ public class ServerMain {
 		}
 	}
 	
+	/**
+	 * Perform stage B
+	 * receive and acknowledge several packets.
+	 */
 	public void stageB() {
 		try {
 			Random rand = new Random();
@@ -84,11 +91,10 @@ public class ServerMain {
 			byte[] buffer = new byte[HEADER_LENGTH + values.lenA + 4];
 			
 			for(int i = 0; i < values.numA; i++) {
+				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+				socket.receive(packet);
 				// randomly determine whether to ACK or not
-				while(rand.nextBoolean()) {
-					DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-					socket.receive(packet);
-					
+				if(rand.nextBoolean()) {					
 					byte[] receivedData = packet.getData();
 					senderAddress = packet.getAddress();
 					senderPort = packet.getPort();
@@ -100,8 +106,14 @@ public class ServerMain {
 						byte[] data = PacketCreater.stageBAck(studentID, i);
 						DatagramPacket sendPacket = new DatagramPacket(data, data.length, senderAddress, senderPort);
 						socket.send(sendPacket);
+					} else {
+						// malformed packet received
+						socket.close();
+						break;
 					}
-				}				
+				} else {
+					i--; // chose not to acknowledge. decrement counter
+				}
 			}
 			
 			if(senderAddress != null) {
@@ -115,6 +127,26 @@ public class ServerMain {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	/**
+	 * Perform stageC. Set up a tcp connection and send a response.
+	 */
+	public void stageC() {
+		try {
+			ServerSocket socket = new ServerSocket(values.tcp_portB);
+			Socket connectionSocket = socket.accept();
+			
+			System.out.println("Server has connected.");
+			byte[] data = PacketCreater.stageCPacket(studentID, values.secretC);
+			
+			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
+			out.write(data);
+			
+		} catch (IOException e) {
+			System.out.println("IOException caught: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	/**
