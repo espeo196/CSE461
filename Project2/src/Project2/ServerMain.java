@@ -26,7 +26,8 @@ public class ServerMain {
 		
 		Random rand = new Random();
 		values = new ValuesHolder();
-				
+		values.c = 'c'; // TODO: needs to be random		
+		
 		values.lenA = rand.nextInt(20);
 		values.numA = rand.nextInt(20);
 		values.lenC = rand.nextInt(20);

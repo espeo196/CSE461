@@ -10,6 +10,65 @@ public class PacketCreater {
 	public static final int HEADER_LENGTH = 12;
 	
 	/**
+	 * Generate packet for stageA
+	 * @param secretA int secret to include in the packet.
+	 * @param studentID 3 digit int converted into bytes
+	 * @return a byte[] containing the packet for stageA
+	 */
+	public static byte[] stageAPacket(byte[] studentID, int secretA) {		
+		byte[] payload = new byte[16];
+		payload[3] = (byte) ServerMain.values.numA; // num
+		payload[7] = (byte) ServerMain.values.lenA; // len
+		System.arraycopy(intToByteArray(ServerMain.values.udp_portA), 0, payload, 8, 4); // udp_port
+		System.arraycopy(intToByteArray(secretA), 0, payload, 12, 4); // secretA
+		
+		return createPacket(secretA, 2, studentID, payload);
+	}
+
+	/**
+	 * Generate packet for stage B, step 2
+	 * @param studentID 3 digit int converted into bytes
+	 * @param secretB int secret to include in the packet
+	 * @return
+	 */
+	public static byte[] stageBPacket(byte[] studentID, int secretB) {
+		byte[] payload = new byte[8];
+		System.arraycopy(intToByteArray(ServerMain.values.tcp_portB), 0, payload, 0, 4);
+		System.arraycopy(intToByteArray(secretB), 0, payload, 4, 4);
+		
+		return createPacket(secretB, 2, studentID, payload);
+	}
+
+	/**
+	 * Generates acknowledgement packet for stage B
+	 * @param studentID 3 digit int converted into bytes
+	 * @param id int packet_id of ACK
+	 * @return
+	 */
+	public static byte[] stageBAck(byte[] studentID, int id) {
+		byte[] payload = new byte[4];
+		payload[3] = (byte) id;
+		return createPacket(ServerMain.values.secretA, 1, studentID, payload);
+	}
+	
+
+	/**
+	 * Creates a packet to be sent to the client in stage C.
+	 * @param studentID 3 digit int converted into bytes
+	 * @param secretC int secret to include in packet
+	 * @return a byte[] containing the packet for stage C
+	 */
+	public static byte[] stageCPacket(byte[] studentID, int secretC) {
+		byte[] payload = new byte[13];
+		System.arraycopy(intToByteArray(ServerMain.values.numC), 0, payload, 0, 4);
+		System.arraycopy(intToByteArray(ServerMain.values.lenC), 0, payload, 4, 4);
+		System.arraycopy(intToByteArray(secretC), 0, payload, 8, 4);
+		payload[12] = (byte) ServerMain.values.c;
+		
+		return createPacket(ServerMain.values.secretC, 2, studentID, payload);
+	}
+	
+	/**
 	 * 
 	 * @param psecret int secret to include in the packet.
 	 * @param step int
@@ -59,36 +118,6 @@ public class PacketCreater {
 		return header;
 	}
 	
-	/**
-	 * Generate packet for stageA
-	 * @param secretA int secret to include in the packet.
-	 * @param studentID 3 digit int.
-	 * @return a byte[] containing the packet for stageA
-	 */
-	public static byte[] stageAPacket(byte[] studentID, int secretA) {		
-		byte[] payload = new byte[16];
-		payload[3] = (byte) ServerMain.values.numA; // num
-		payload[7] = (byte) ServerMain.values.lenA; // len
-		System.arraycopy(intToByteArray(ServerMain.values.udp_portA), 0, payload, 8, 4); // udp_port
-		System.arraycopy(intToByteArray(secretA), 0, payload, 12, 4); // secretA
-		
-		return createPacket(secretA, 2, studentID, payload);
-	}
-
-	public static byte[] stageBPacket(byte[] studentID, int secretB) {
-		byte[] payload = new byte[8];
-		System.arraycopy(intToByteArray(ServerMain.values.tcp_portB), 0, payload, 0, 4);
-		System.arraycopy(intToByteArray(secretB), 0, payload, 4, 4);
-		
-		return createPacket(secretB, 2, studentID, payload);
-	}
-
-	public static byte[] stageBAck(byte[] studentID, int id) {
-		byte[] payload = new byte[4];
-		payload[3] = (byte) id;
-		return createPacket(ServerMain.values.secretA, 1, studentID, payload);
-	}
-	
 	public static byte[] intToByteArray(int value) {
 		byte[] b = new byte[4];
 		for (int i = 0; i < 4; i++) {
@@ -96,10 +125,5 @@ public class PacketCreater {
 			b[i] = (byte) ((value >>> offset) & 0xFF);
 		}
 		return b;
-	}
-
-	public static byte[] stageCPacket(byte[] studentID, int secretC) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

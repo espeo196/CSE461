@@ -12,88 +12,6 @@ public class PacketVerifier {
 	public static final int HEADER_LENGTH = 12;
 	
 	/**
-	 * Verifies whether the received header is in the correct format as follows:
-	 * 
-	 *  0               1               2               3  
- 	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|                           payload_len                         |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|                             psecret                           |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|             step               |  last 3 digits of student #  |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *
-	 * @param data byte[] to be verified. Note that this data contains the header and payload.
-	 * @return true if the header if formatted correctly, false otherwise
-	 */
-	public static boolean verifyHeader(byte[] data, int payloadLen, int psecret, int step) {
-		byte[] payloadLenByte = new byte[4];
-		byte[] psecretByte = new byte[4];
-		byte[] stepByte = new byte[2];
-		
-		payloadLenByte = ByteBuffer.allocate(4).putInt(payloadLen).array();
-		psecretByte = ByteBuffer.allocate(4).putInt(psecret).array();
-		stepByte = ByteBuffer.allocate(2).putInt(step).array();
-		
-		// make sure the payload length, secret, step, and studentID are correctly 
-		// allocated in the header.
-		return (compareArrays(Arrays.copyOfRange(data, 0, 4), payloadLenByte) &&
-				compareArrays(Arrays.copyOfRange(data, 4, 8), psecretByte) &&
-				compareArrays(Arrays.copyOfRange(data, 8, 10), stepByte));		
-	}
-	
-	/**
-	 * Compare two arrays
-	 * @param array1
-	 * @param array2
-	 * @return true when they contain the same value or both are null
-	 */
-	private static boolean compareArrays(byte[] array1, byte[] array2) {
-		if(array1 == null && array2 == null) {
-			return true;
-		} else if ((array1 == null && array2 != null) || (array1 != null && array2 == null)) {
-			return false;
-		} else if (array1.length != array2.length) {
-			return false;
-		}
-		
-		for (int i = 0; i < array2.length; i++) {
-			if (array2[i] != array1[i]) {
-				return false;
-			}                 
-		}
-		return true;
-	}
-	
-	/**
-	 * Verify a Packet. This includes verifying that the header is in the correct format.
-	 * @param packet			received packet
-	 * @param expectedPayload	expected payload content
-	 * @param psecret			expected psecret
-	 * @param step				expected step of the stage
-	 * @param studentID			expected studentID
-	 * @return
-	 */
-	private static boolean verifyPacket(byte[] packet, byte[] expectedPayload, int psecret, int step) {
-		if(packet.length != expectedPayload.length + HEADER_LENGTH) {
-			return false;
-		}
-		byte[] header = Arrays.copyOfRange(packet, 0, HEADER_LENGTH);
-		byte[] payload = Arrays.copyOfRange(packet, HEADER_LENGTH, packet.length);
-		
-		// verify header
-		if(!verifyHeader(header, payload.length, psecret, step)) {
-			return false;
-		}
-		// verify payload content
-		else if(!compareArrays(expectedPayload, payload)) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * Verifies whether packet from stage A (header and payload)
 	 *  payload of stage A
 	 *  0               1               2               3
@@ -147,13 +65,91 @@ public class PacketVerifier {
 		return verifyPacket(receivedData, expectedPayload, secretA, 1);
 	}
 	
-	public static boolean verifyStageC (byte[] packet){
-		
-		return false;
-	}
-	
 	public static boolean verifyStageD (byte[] packet){
 		
 		return false;
 	}
+	
+	/**
+	 * Verify a Packet. This includes verifying that the header is in the correct format.
+	 * @param packet			received packet
+	 * @param expectedPayload	expected payload content
+	 * @param psecret			expected psecret
+	 * @param step				expected step of the stage
+	 * @param studentID			expected studentID
+	 * @return
+	 */
+	private static boolean verifyPacket(byte[] packet, byte[] expectedPayload, int psecret, int step) {
+		if(packet.length != expectedPayload.length + HEADER_LENGTH) {
+			return false;
+		}
+		byte[] header = Arrays.copyOfRange(packet, 0, HEADER_LENGTH);
+		byte[] payload = Arrays.copyOfRange(packet, HEADER_LENGTH, packet.length);
+		
+		// verify header
+		if(!verifyHeader(header, payload.length, psecret, step)) {
+			return false;
+		}
+		// verify payload content
+		else if(!compareArrays(expectedPayload, payload)) {
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Verifies whether the received header is in the correct format as follows:
+	 * 
+	 *  0               1               2               3  
+ 	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                           payload_len                         |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                             psecret                           |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|             step               |  last 3 digits of student #  |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *
+	 * @param data byte[] to be verified. Note that this data contains the header and payload.
+	 * @return true if the header if formatted correctly, false otherwise
+	 */
+	private static boolean verifyHeader(byte[] data, int payloadLen, int psecret, int step) {
+		byte[] payloadLenByte = new byte[4];
+		byte[] psecretByte = new byte[4];
+		byte[] stepByte = new byte[2];
+		
+		payloadLenByte = ByteBuffer.allocate(4).putInt(payloadLen).array();
+		psecretByte = ByteBuffer.allocate(4).putInt(psecret).array();
+		stepByte = ByteBuffer.allocate(2).putInt(step).array();
+		
+		// make sure the payload length, secret, step, and studentID are correctly 
+		// allocated in the header.
+		return (compareArrays(Arrays.copyOfRange(data, 0, 4), payloadLenByte) &&
+				compareArrays(Arrays.copyOfRange(data, 4, 8), psecretByte) &&
+				compareArrays(Arrays.copyOfRange(data, 8, 10), stepByte));		
+	}
+	
+	/**
+	 * Compare two arrays
+	 * @param array1
+	 * @param array2
+	 * @return true when they contain the same value or both are null
+	 */
+	private static boolean compareArrays(byte[] array1, byte[] array2) {
+		if(array1 == null && array2 == null) {
+			return true;
+		} else if ((array1 == null && array2 != null) || (array1 != null && array2 == null)) {
+			return false;
+		} else if (array1.length != array2.length) {
+			return false;
+		}
+		
+		for (int i = 0; i < array2.length; i++) {
+			if (array2[i] != array1[i]) {
+				return false;
+			}                 
+		}
+		return true;
+	}
+
 }
