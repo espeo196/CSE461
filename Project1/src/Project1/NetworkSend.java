@@ -2,6 +2,7 @@ package Project1;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -22,12 +23,13 @@ public class NetworkSend {
 	 * @param socket DatagramSocket to send packets through.
 	 * @param serverAddress InetAddress of the receiving server.
 	 * @param port int value of the port to connect and send data to.
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static void sendStageA(DatagramSocket socket, InetAddress serverAddress, int port) {
+	public static void sendStageA(DatagramSocket socket, InetAddress serverAddress, int port) throws UnsupportedEncodingException {
 		// put the string into an array and add the null terminator
 		String payload = "hello world";
     	byte[] b = new byte[payload.getBytes().length+1];
-    	System.arraycopy(payload.getBytes(), 0, b, 0, payload.getBytes().length);
+    	System.arraycopy(payload.getBytes("US-ASCII"), 0, b, 0, payload.getBytes().length);
     	b[b.length-1] = 0;
     	
     	//generate the header
@@ -159,4 +161,6 @@ public class NetworkSend {
     	
     	return header;
 	}
+	
+	
 }

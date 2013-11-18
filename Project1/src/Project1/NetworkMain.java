@@ -13,7 +13,8 @@ public class NetworkMain {
 	/**
 	 * String name of the server to connect to.
 	 */
-	public static final String SERVER_NAME = "bicycle.cs.washington.edu";
+	//public static final String SERVER_NAME = "bicycle.cs.washington.edu";
+	public static final String SERVER_NAME = "localhost";
 	
 	/**
 	 * Port value for initially connecting and sending/receiving Datagrams.
@@ -28,6 +29,7 @@ public class NetworkMain {
 		try {
 			socket = new DatagramSocket();
 			serverAddress = InetAddress.getByName(SERVER_NAME);
+			
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
@@ -56,7 +58,6 @@ public class NetworkMain {
 			NetworkSend.sendStageA(socket, serverAddress, PORT);
 			dataA = NetworkReceive.listen(socket, 1000);
 			printPacket(dataA,"----------------stage a result----------------");
-			
 			NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), 
 					byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
 			dataB = NetworkReceive.listen(socket, 1000);
@@ -93,6 +94,40 @@ public class NetworkMain {
 		}
 	}
 	
+
+	
+	/**
+	 * Print out the content of the packet
+	 *
+	 * @param packet byte[] to have its contents printed.
+	 * @param title String to be shown before printing packet contents.
+	 */
+	public static void printPacket(byte[] packet, String title){
+		if(title!=null)
+			System.out.println(title);
+		if(packet!=null){
+			System.out.println("Packet Header:");
+			
+			for (int j=0; j < 12; j++) {
+				System.out.format("0x%x ", packet[j]);
+		 		if((j+1)%4 == 0) {
+		        	System.out.println();
+		        }
+	 		}
+			
+			System.out.println("Packet Content:");
+			for (int j=12; j < 28; j++) {
+				System.out.format("0x%x ", packet[j]);
+		 		if((j+1)%4 == 0) {
+		 			System.out.println();
+		        }
+			}
+			System.out.println("---------------");
+		}else{
+			System.out.println("null");
+		}
+			
+	}
 	/**
 	 * Convert the byte array to an int.
 	 *
@@ -107,32 +142,5 @@ public class NetworkMain {
 	        value += (b[i + offset] & 0x000000FF) << shift;
 	    }
 	    return value;
-	}
-	
-	/**
-	 * Print out the content of the packet
-	 *
-	 * @param packet byte[] to have its contents printed.
-	 * @param title String to be shown before printing packet contents.
-	 */
-	public static void printPacket(byte[] packet, String title){
-		System.out.println(title);
-		System.out.println("Packet Header:");
-		
-		for (int j=0; j < 12; j++) {
-			System.out.format("0x%x ", packet[j]);
-	 		if((j+1)%4 == 0) {
-	        	System.out.println();
-	        }
- 		}
-		
-		System.out.println("Packet Content:");
-		for (int j=12; j < 28; j++) {
-			System.out.format("0x%x ", packet[j]);
-	 		if((j+1)%4 == 0) {
-	 			System.out.println();
-	        }
-		}
-		System.out.println("---------------");
 	}
 }

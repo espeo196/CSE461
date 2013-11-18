@@ -5,7 +5,7 @@ package Project2;
  * @author benjamin
  *
  */
-public class ServerClient {
+public class ServerRunner {
 		
 	public static void main(String[] args) {
 		ServerMain server = new ServerMain();
