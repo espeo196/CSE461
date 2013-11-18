@@ -12,6 +12,7 @@ public class PacketVerifier {
 	public static final int HEADER_LENGTH = 12;
 	
 	/**
+<<<<<<< HEAD
 	 * Verifies whether the received header is in the correct format as follows:
 	 * 
 	 *  0               1               2               3  
@@ -103,6 +104,8 @@ public class PacketVerifier {
 	}
 
 	/**
+=======
+>>>>>>> refs/remotes/espeo196/master
 	 * Verifies whether packet from stage A (header and payload)
 	 *  payload of stage A
 	 *  0               1               2               3
@@ -149,11 +152,6 @@ public class PacketVerifier {
 		System.arraycopy(zeroPayload, 0, expectedPayload, 4, zeroPayload.length);
 		
 		return verifyPacket(receivedData, expectedPayload, values.getSecretA(), 1,values.getStudentID());
-	}
-	
-	public static boolean verifyStageC (byte[] packet){
-		
-		return false;
 	}
 	
 	public static boolean verifyStageD (byte[] packet){

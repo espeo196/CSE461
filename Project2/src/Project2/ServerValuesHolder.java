@@ -184,13 +184,24 @@ public class ServerValuesHolder{
 	public int getNum2() {
 		return num2;
 	}
+	public byte[] getNum2_byte(){
+		return intToByteArray(num2);
+	}
 
 	public int getLen2() {
 		return len2;
 	}
+	
+	public byte[] getLen2_byte(){
+		return intToByteArray(len2);
+	}
 
 	public int getSecretC() {
 		return secretC;
+	}
+	
+	public byte[] getSecretC_byte(){
+		return intToByteArray(secretC);
 	}
 
 	public char getC() {

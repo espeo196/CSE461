@@ -1,7 +1,6 @@
 package Project2;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -23,7 +22,6 @@ public class ServerMain {
 	
 	public ServerMain() {
 		values = new ServerValuesHolder();
-
 	}
 	
 	/**
