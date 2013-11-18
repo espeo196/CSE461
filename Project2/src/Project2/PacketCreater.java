@@ -30,9 +30,8 @@ public class PacketCreater {
 	}
 	
 	/**
-	 * Generates acknowledgement packet for stage B
+	 * Generates packet for stage B
 	 * @param studentID 3 digit int converted into bytes
-	 * @param id int packet_id of ACK
 	 * @return
 	 */
 	public static byte[] stageBPacket(ServerValuesHolder values) {
@@ -104,13 +103,13 @@ public class PacketCreater {
 		byte[] payloadLen_b = new byte[4];
 		byte[] psecret_b = new byte[4];
 		byte[] step_b = new byte[2];
-		byte[] studentID_b=new byte[2];
+		byte[] studentID_b = new byte[2];
 		
 		//convert to byte[]
 		payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen).array();
 		psecret_b=ByteBuffer.allocate(4).putInt(psecret).array();
 		step_b=ByteBuffer.allocate(4).putInt(step).array();
-		studentID_b=ByteBuffer.allocate(4).putInt(studentID).array();
+		studentID_b=ByteBuffer.allocate(2).putInt(studentID).array();
 		
 		//copy to header
 		System.arraycopy(payloadLen_b, 0, header, 0, 4);
