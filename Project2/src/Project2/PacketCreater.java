@@ -109,7 +109,7 @@ public class PacketCreater {
 		payloadLen_b=ByteBuffer.allocate(4).putInt(payloadLen).array();
 		psecret_b=ByteBuffer.allocate(4).putInt(psecret).array();
 		step_b=ByteBuffer.allocate(4).putInt(step).array();
-		studentID_b=ByteBuffer.allocate(2).putInt(studentID).array();
+		studentID_b=ByteBuffer.allocate(4).putInt(studentID).array();
 		
 		//copy to header
 		System.arraycopy(payloadLen_b, 0, header, 0, 4);

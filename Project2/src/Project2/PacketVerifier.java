@@ -27,21 +27,30 @@ public class PacketVerifier {
 	 * @param data byte[] to be verified. Note that this data contains the header and payload.
 	 * @return true if the header if formatted correctly, false otherwise
 	 */
-    private static boolean verifyHeader(byte[] data, int payloadLen, int psecret, int step) {
-        byte[] payloadLenByte = new byte[4];
-        byte[] psecretByte = new byte[4];
-        byte[] stepByte = new byte[2];
-        
-        payloadLenByte = ByteBuffer.allocate(4).putInt(payloadLen).array();
-        psecretByte = ByteBuffer.allocate(4).putInt(psecret).array();
-        stepByte = ByteBuffer.allocate(2).putInt(step).array();
-        
-        // make sure the payload length, secret, step, and studentID are correctly 
-        // allocated in the header.
-        return (compareArrays(Arrays.copyOfRange(data, 0, 4), payloadLenByte) &&
-                        compareArrays(Arrays.copyOfRange(data, 4, 8), psecretByte) &&
-                        compareArrays(Arrays.copyOfRange(data, 8, 10), stepByte));                
-    }
+	public static boolean verifyHeader(byte[] data, int payloadLen, int psecret, int step, int studentID) {
+		byte[] payloadLenByte;
+		byte[] psecretByte;
+		byte[] stepByte;
+		byte[] studentIDByte;
+		
+		payloadLenByte = ByteBuffer.allocate(4).putInt(payloadLen).array();
+		psecretByte = ByteBuffer.allocate(4).putInt(psecret).array();
+		stepByte = ByteBuffer.allocate(4).putInt(step).array();
+		studentIDByte = ByteBuffer.allocate(4).putInt(studentID).array();
+		
+		// make sure the payload length, secret, step, and studentID are correctly 
+		// allocated in the header.
+		if(!compareArrays(Arrays.copyOfRange(data, 0, 4), Arrays.copyOfRange(payloadLenByte, 0, 4)))
+			return false;
+		if(!compareArrays(Arrays.copyOfRange(data, 4, 8), Arrays.copyOfRange(psecretByte, 0, 4)))
+			return false;
+		if(!compareArrays(Arrays.copyOfRange(data, 8, 10), Arrays.copyOfRange(stepByte, 2 ,4)))
+			return false;
+		if(!compareArrays(Arrays.copyOfRange(data, 10, 12), Arrays.copyOfRange(studentIDByte, 2 ,4)))
+			return false;
+		
+		return true;
+	}
 	
 	/**
 	 * Compare two arrays
@@ -83,7 +92,7 @@ public class PacketVerifier {
 		byte[] payload = Arrays.copyOfRange(packet, HEADER_LENGTH, packet.length);
 		
 		// verify header
-		if(!verifyHeader(header, payload.length, psecret, step)) {
+		if(!verifyHeader(header, payload.length, psecret, step, studentID)) {
 			return false;
 		}
 		// verify payload content

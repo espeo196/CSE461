@@ -15,10 +15,8 @@ import java.util.Random;
  *
  */
 public class ServerMain {
-
 	
 	public ServerValuesHolder values;
-
 	
 	public ServerMain() {
 		values = new ServerValuesHolder();
@@ -29,7 +27,7 @@ public class ServerMain {
 	 * receive a packet from client
 	 * transmit a packet if it the client's packet is valid 
 	 */
-	public void stageA() {
+	public boolean stageA() {
 		// establish server socket
 		
 		
@@ -42,35 +40,42 @@ public class ServerMain {
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			socket.receive(packet);
 			byte[] receivedData = packet.getData();
-			
+			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH){
+				values.setStudentID(Arrays.copyOfRange(receivedData, 10, 12));
+				values.setSenderAddress(packet.getAddress());
+				values.setSenderPort(packet.getPort());
+			}
 			// verify header and that the received packet is long enough
-			if(receivedData.length > 12 && PacketVerifier.verifyStageA(receivedData, values)) {
-				values.setStudentID(Arrays.copyOfRange(receivedData, 10, 12));		
-				
+			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageA(receivedData, values)) {
 				byte[] data = PacketCreater.stageAPacket(values);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 				socket.send(sendPacket);
+				socket.close();
+				return true;
 			}else{
+				socket.close();
 				System.out.println("stage A packet not valid");
+				return false;
 			}
-			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
+			return false;
 		}
+		
 	}
 	
 	/**
 	 * Perform stage B
 	 * receive and acknowledge several packets.
 	 */
-	public void stageB() {
+	public boolean stageB() {
 		try {
 			Random rand = new Random();
 			InetAddress senderAddress = null;
 			int senderPort = 0;
 			
-			DatagramSocket socket = new DatagramSocket(values.getUdp_portInit());
+			DatagramSocket socket = new DatagramSocket(values.getUdp_port());
 			
 			byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + values.getLen() + 4];
 			
@@ -84,15 +89,16 @@ public class ServerMain {
 					senderPort = packet.getPort();
 
 					// extract packet_id
-					if(receivedData.length > 12 && PacketVerifier.verifyStageB(receivedData, values, i)) {
+					if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageB(receivedData, values, i)) {
 					
 						byte[] data = PacketCreater.stageBAck(values, i);
 						DatagramPacket sendPacket = new DatagramPacket(data, data.length, senderAddress, senderPort);
 						socket.send(sendPacket);
 					} else {
 						// malformed packet received
+						System.out.println("Stage B malformed packet received");
 						socket.close();
-						break;
+						return false;
 					}
 				} else {
 					i--; // chose not to acknowledge. decrement counter
@@ -109,6 +115,7 @@ public class ServerMain {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
 		}
+		return true;
 		
 	}
 	
@@ -130,6 +137,14 @@ public class ServerMain {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	public void displayStatus(){
+		System.out.println(values.toString());
+		ServerValuesHolder.printPacket(PacketCreater.stageAPacket(values), "----------------stage A packet----------------");
+		ServerValuesHolder.printPacket(PacketCreater.stageBPacket(values), "----------------stage B packet----------------");
+		ServerValuesHolder.printPacket(PacketCreater.stageCPacket(values), "----------------stage C packet----------------");
+		//ServerValuesHolder.printPacket(PacketCreater.stageDPacket(values), "----------------stage D packet----------------");
 	}
 	
 
