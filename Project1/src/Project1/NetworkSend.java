@@ -84,10 +84,15 @@ public class NetworkSend {
 			
 			try {
 				socket.send(packet);
-
+				int count=0;
 				// listen for ack for each transmission with a timeout of .5 seconds
 				while(NetworkReceive.listen(socket, 500) == null) {
 					socket.send(packet);
+					count++;
+					if(count>10){
+						System.out.println("stage b failed");
+						return ;
+					}
 				}
 			} catch (IOException e) {
 				System.out.println("IOException caught: " + e.getMessage());

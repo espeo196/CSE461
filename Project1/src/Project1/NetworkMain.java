@@ -57,11 +57,13 @@ public class NetworkMain {
 		try {
 			NetworkSend.sendStageA(socket, serverAddress, PORT);
 			dataA = NetworkReceive.listen(socket, 1000);
-			printPacket(dataA,"----------------stage a result----------------");
-			NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), 
-					byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
-			dataB = NetworkReceive.listen(socket, 1000);
-			printPacket(dataB,"----------------stage b result----------------");
+			if(dataA!=null){
+				printPacket(dataA,"----------------stage a result----------------");
+				NetworkSend.sendStageB(socket, serverAddress, byteArrayToInt(dataA, 12), 
+						byteArrayToInt(dataA, 16), byteArrayToInt(dataA, 20), byteArrayToInt(dataA, 24));
+				dataB = NetworkReceive.listen(socket, 1000);
+				printPacket(dataB,"----------------stage b result----------------");
+			}
 			
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());

@@ -9,8 +9,16 @@ public class ServerRunner {
 		
 	public static void main(String[] args) {
 		ServerMain server = new ServerMain();
-		server.stageA();
-		server.stageB();
+		if(!server.stageA()){
+			return ;
+		}
+		System.out.println("stage A passed");
+		if(!server.stageB()){
+			return ; 
+		}
+		System.out.println("stage B passed");
+		
+		server.displayStatus();
 	}
 
 }

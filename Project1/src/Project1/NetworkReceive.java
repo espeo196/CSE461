@@ -34,7 +34,7 @@ public class NetworkReceive {
 	        
 	    } catch (SocketTimeoutException e) {
 	        System.out.println("timeout");
-	        e.printStackTrace();
+	        //e.printStackTrace();
 	    }
 		return null; // no data to return
 	}
