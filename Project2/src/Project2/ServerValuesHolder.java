@@ -16,6 +16,7 @@ public class ServerValuesHolder{
 	public static final int HEADER_LENGTH = 12;
 	public static final int MIN_PORT = 49152;	//range of available port
 	public static final int MAX_PORT = 65535;
+	public static final int TIMEOUT = 3000;
 	public static final int udp_portInit = 12235;
 	public static final int secretInit = 0;
 	public static final byte[] payloadInit=stringToByte("hello world");
@@ -26,6 +27,7 @@ public class ServerValuesHolder{
 	private int senderPort;
 	
 	private byte[] initialPacket;
+	private DatagramSocket initialSocket;
 	
 	//stage A
 	private int num;
@@ -36,6 +38,7 @@ public class ServerValuesHolder{
 	private int tcp_port;
 	private int secretB;
 	//Stage C
+	private ServerSocket tcpSocket;
 	private int num2;
 	private int len2;
 	private int secretC;
@@ -47,6 +50,9 @@ public class ServerValuesHolder{
 		studentID=0;
 		senderAddress=null;
 		senderPort=0;
+		
+		initialPacket=null;
+		initialSocket=null;
 		
 		Random rand = new Random();
 
@@ -111,6 +117,20 @@ public class ServerValuesHolder{
 		}else{
 			return false;
 		}
+	}
+	public boolean setInitialSocket(DatagramSocket initialSocket){
+		if(initialSocket!=null){
+			this.initialSocket=initialSocket;
+			return true;
+		}else
+			return false;
+	}
+	public boolean setTcpSocket(ServerSocket tcpSocket){
+		if(tcpSocket != null){
+			this.tcpSocket = tcpSocket;
+			return true;
+		}
+		return false;
 	}
 	
 	public int generateServerPort(){
@@ -274,6 +294,10 @@ public class ServerValuesHolder{
 	public byte[] getInitialPacket(){
 		return initialPacket;
 	}
+	
+	public DatagramSocket getInitialSocket(){
+		return initialSocket;
+	}
 
 	public int getNum() {
 		return num;
@@ -302,6 +326,9 @@ public class ServerValuesHolder{
 	}
 	public byte[] getTcp_port_byte() {
 		return intToByteArray(tcp_port);
+	}
+	public ServerSocket getTcpSocket(){
+		return tcpSocket;
 	}
 
 	public int getSecretB() {
