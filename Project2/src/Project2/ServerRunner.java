@@ -15,21 +15,18 @@ public class ServerRunner {
 		byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + ServerValuesHolder.payloadInit.length]; // header length + payload length = 12 + 8
 		
 		try{
-			int count = 0;
-			
 			DatagramSocket socket = new DatagramSocket(12235);	
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			// receive request
 			
-			while((count++ < MAX_CONNECTIONS) || (MAX_CONNECTIONS == 0)){
+			while(true){
 				
 				socket.receive(packet);
 				byte[] receivedData = packet.getData();
 				if(receivedData.length > ServerValuesHolder.HEADER_LENGTH){
-					ServerMain server= new ServerMain(packet);
+					ServerMain server= new ServerMain(packet,socket);
 					Thread t = new Thread(server);
 					t.start();
-					socket.close();
 				}
 			}
 		}catch (Exception e){
