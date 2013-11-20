@@ -16,16 +16,17 @@ public class ServerValuesHolder{
 	public static final int HEADER_LENGTH = 12;
 	public static final int MIN_PORT = 49152;	//range of available port
 	public static final int MAX_PORT = 65535;
+	public static final int udp_portInit = 12235;
+	public static final int secretInit = 0;
+	public static final byte[] payloadInit=stringToByte("hello world");
 	
 	//Server values
 	private int studentID;
 	private InetAddress senderAddress;
 	private int senderPort;
 	
-	//initial value
-	private int secretInit;
-	private byte[] payloadInit;
-	private int udp_portInit;
+	private byte[] initialPacket;
+	
 	//stage A
 	private int num;
 	private int len;
@@ -48,20 +49,18 @@ public class ServerValuesHolder{
 		senderPort=0;
 		
 		Random rand = new Random();
-		payloadInit=stringToByte("hello world");
 
 		len = rand.nextInt(20)+1;
 		num = rand.nextInt(20)+1;
 		len2 = rand.nextInt(20)+1;
 		num2 = rand.nextInt(20)+1;
 		
-		secretInit=0;
 		secretA = rand.nextInt();
 		secretB = rand.nextInt();
 		secretC = rand.nextInt();
 		secretD = rand.nextInt();
 		
-		udp_portInit = 12235;
+		
 		udp_port = generateServerPort();
 		tcp_port = generateServerPort();
 		
@@ -99,6 +98,15 @@ public class ServerValuesHolder{
 	public boolean setSenderPort(int senderPort){
 		if(senderPort >= MIN_PORT && senderPort <= MAX_PORT){
 			this.senderPort=senderPort;
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public boolean setInitialPacket(byte[] initialPacket){
+		if(initialPacket!=null){
+			this.initialPacket=initialPacket;
 			return true;
 		}else{
 			return false;
@@ -259,19 +267,12 @@ public class ServerValuesHolder{
 				"\t"+"secretD=" + secretD + "]" + "\n" ;
 	}
 	
-	public int getUdp_portInit(){
-		return udp_portInit;
-	}
 	public int getStudentID() {
 		return studentID;
 	}
-
-	public int getSecretInit() {
-		return secretInit;
-	}
-
-	public byte[] getPayloadInit() {
-		return payloadInit;
+	
+	public byte[] getInitialPacket(){
+		return initialPacket;
 	}
 
 	public int getNum() {

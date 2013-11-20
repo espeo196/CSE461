@@ -26,7 +26,7 @@ public class PacketCreater {
 		System.arraycopy(values.getUdp_port_byte(), 0, payload, 8, 4); // udp_port
 		System.arraycopy(values.getSecretA_byte(), 0, payload, 12, 4); // secretA
 		
-		return createPacket(values.getSecretInit(), 2, values.getStudentID(), payload);
+		return createPacket(ServerValuesHolder.secretInit, 2, values.getStudentID(), payload);
 	}
 	
 	/**
