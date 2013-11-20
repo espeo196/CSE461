@@ -115,7 +115,7 @@ public class PacketVerifier {
 	 * @return true if the packet is valid
 	 */
 	public static boolean verifyStageA(byte[] packet, ServerValuesHolder values) {
-		return verifyPacket(packet, values.getPayloadInit(), values.getSecretInit(), 1,values.getStudentID());
+		return verifyPacket(packet, ServerValuesHolder.payloadInit, ServerValuesHolder.secretInit, 1,values.getStudentID());
 	}
 	
 	/**

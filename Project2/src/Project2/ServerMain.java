@@ -14,14 +14,37 @@ import java.util.Random;
  * @author Nicholas Johnson, Benjamin Chan
  *
  */
-public class ServerMain {
+public class ServerMain implements Runnable {
 	
 	public ServerValuesHolder values;
 	
-	public ServerMain() {
+	public ServerMain(DatagramPacket packet) {
+		byte[] studentID = Arrays.copyOfRange(packet.getData(), 10, 12);
+		InetAddress senderAddress= packet.getAddress();
+		int senderPort= packet.getPort();
+		
 		values = new ServerValuesHolder();
+		values.setStudentID(studentID);
+		values.setSenderAddress(senderAddress);
+		values.setSenderPort(senderPort);
+		values.setInitialPacket(Arrays.copyOfRange(packet.getData(),12,packet.getData().length));
 	}
 	
+	@Override
+	public void run() {
+
+		if(!this.stageA()){
+			return ;
+		}
+		System.out.println("stage A passed");
+		if(!this.stageB()){
+			return ; 
+		}
+		System.out.println("stage B passed");
+		
+		this.displayStatus();
+		
+	}
 	/**
 	 * Perform stage A
 	 * receive a packet from client
@@ -29,31 +52,17 @@ public class ServerMain {
 	 */
 	public boolean stageA() {
 		// establish server socket
-		
-		
+		byte[] receivedData = values.getInitialPacket();		
 		try {
-			DatagramSocket socket = new DatagramSocket(12235);
-			
-			byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH+values.getPayloadInit().length]; // header length + payload length = 12 + 8
-			
-			// receive request
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-			socket.receive(packet);
-			byte[] receivedData = packet.getData();
-			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH){
-				values.setStudentID(Arrays.copyOfRange(receivedData, 10, 12));
-				values.setSenderAddress(packet.getAddress());
-				values.setSenderPort(packet.getPort());
-			}
 			// verify header and that the received packet is long enough
 			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageA(receivedData, values)) {
 				byte[] data = PacketCreater.stageAPacket(values);
-				DatagramPacket sendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+				DatagramSocket socket = new DatagramSocket(ServerValuesHolder.udp_portInit);
+				DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 				socket.send(sendPacket);
 				socket.close();
 				return true;
 			}else{
-				socket.close();
 				System.out.println("stage A packet not valid");
 				return false;
 			}
