@@ -5,22 +5,22 @@ import java.net.DatagramSocket;
 
 /**
  * Runs both the client and Server to test the server
- * @author benjamin
+ * @author Benjamin Chan, Nicholas Johnson
  *
  */
 public class ServerRunner {
 	public static final int MAX_CONNECTIONS = 50;
 		
 	public static void main(String[] args) {
-		byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + ServerValuesHolder.payloadInit.length]; // header length + payload length = 12 + 8
+		// array length = header length + payload length = 12 + 8
+		byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + ServerValuesHolder.payloadInit.length]; 
 		
-		try{
+		try {
 			DatagramSocket socket = new DatagramSocket(12235);	
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-			// receive request
 			
-			while(true){
-				
+			// receive request
+			while(true) {	
 				socket.receive(packet);
 				byte[] receivedData = packet.getData();
 				if(receivedData.length > ServerValuesHolder.HEADER_LENGTH){
@@ -29,13 +29,10 @@ public class ServerRunner {
 					t.start();
 				}
 			}
-		}catch (Exception e){
+		} catch (Exception e) {
 			System.out.println("IOException caught: " + e.getMessage());
 			e.printStackTrace();
 			return ;
-		
 		}
-		
 	}
-
 }

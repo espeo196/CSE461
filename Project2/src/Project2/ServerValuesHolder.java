@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -45,6 +46,7 @@ public class ServerValuesHolder{
 	private char c;
 	
 	private int secretD;
+	private Socket connectionSocket;
 	
 	public ServerValuesHolder() {
 		studentID=0;
@@ -76,8 +78,8 @@ public class ServerValuesHolder{
 	 * @param studentID
 	 * @return true if the id is valid 
 	 */
-	public boolean setStudentID(byte[] studentID){
-		if(studentID.length==2){
+	public boolean setStudentID(byte[] studentID) {
+		if(studentID.length==2) {
 			this.studentID=byteArrayToInt(studentID,0);
 			return true;
 		}
@@ -88,8 +90,8 @@ public class ServerValuesHolder{
 	 * @param senderAddress 
 	 * @return true if address is not null
 	 */
-	public boolean setSenderAddress(InetAddress senderAddress){
-		if(senderAddress!=null){
+	public boolean setSenderAddress(InetAddress senderAddress) {
+		if(senderAddress!=null) {
 			this.senderAddress=senderAddress;
 			return true;
 		}else{
@@ -101,8 +103,8 @@ public class ServerValuesHolder{
 	 * @param senderPort
 	 * @return true if the port number is in range
 	 */
-	public boolean setSenderPort(int senderPort){
-		if(senderPort >= MIN_PORT && senderPort <= MAX_PORT){
+	public boolean setSenderPort(int senderPort) {
+		if(senderPort >= MIN_PORT && senderPort <= MAX_PORT) {
 			this.senderPort=senderPort;
 			return true;
 		}else{
@@ -110,39 +112,47 @@ public class ServerValuesHolder{
 		}
 	}
 	
-	public boolean setInitialPacket(byte[] initialPacket){
-		if(initialPacket!=null){
+	public boolean setInitialPacket(byte[] initialPacket) {
+		if(initialPacket!=null) {
 			this.initialPacket=initialPacket;
 			return true;
 		}else{
 			return false;
 		}
 	}
-	public boolean setInitialSocket(DatagramSocket initialSocket){
-		if(initialSocket!=null){
+	public boolean setInitialSocket(DatagramSocket initialSocket) {
+		if(initialSocket!=null) {
 			this.initialSocket=initialSocket;
 			return true;
 		}else
 			return false;
 	}
-	public boolean setTcpSocket(ServerSocket tcpSocket){
-		if(tcpSocket != null){
+	public boolean setTcpSocket(ServerSocket tcpSocket) {
+		if(tcpSocket != null) {
 			this.tcpSocket = tcpSocket;
 			return true;
 		}
 		return false;
 	}
 	
-	public int generateServerPort(){
+	public boolean setTcpConnectionSocket(Socket connectionSocket) {
+		if(connectionSocket != null) {
+			this.connectionSocket = connectionSocket;
+			return true;
+		}
+		return false;
+	}
+	
+	public int generateServerPort() {
 		Random rand=new Random();
 		int randPort = 0;
 		int count = 0;
 		boolean portAvailable = false;
-		while(!portAvailable){
+		while(!portAvailable) {
 			randPort = rand.nextInt(MAX_PORT - MIN_PORT)+ MIN_PORT;
 			portAvailable=checkPort(randPort);
 			count++;
-			if(count>= MAX_PORT - MIN_PORT){
+			if(count>= MAX_PORT - MIN_PORT) {
 				throw new RuntimeException("Cannot find available port");
 			}
 		}
@@ -191,8 +201,8 @@ public class ServerValuesHolder{
 	 * @return byte array represented 
 	 * @throws UnsupportedEncodingException 
 	 */
-	private static byte[] stringToByte(String str){
-		if(str!=null){
+	private static byte[] stringToByte(String str) {
+		if(str!=null) {
 			byte[] byteArray;
 			try {
 				byteArray = new byte[(int) (4*(Math.ceil((str.getBytes("US-ASCII").length+1)/4.0)))];
@@ -242,10 +252,10 @@ public class ServerValuesHolder{
 	 * @param packet byte[] to have its contents printed.
 	 * @param title String to be shown before printing packet contents.
 	 */
-	public static void printPacket(byte[] packet, String title){
+	public static void printPacket(byte[] packet, String title) {
 		if(title!=null)
 			System.out.println(title);
-		if(packet!=null){
+		if(packet!=null) {
 			System.out.println("Packet Header:");
 			printByteArray(packet, 0, 12);
 			
@@ -258,7 +268,7 @@ public class ServerValuesHolder{
 		}	
 	}
 	
-	private static void printByteArray(byte[] packet, int offset, int length){
+	private static void printByteArray(byte[] packet, int offset, int length) {
 		for (int j= offset; j < length; j++) {
 			System.out.format("0x%x ", packet[j]);
 	 		if((j+1)%4 == 0) {
@@ -290,96 +300,88 @@ public class ServerValuesHolder{
 	public int getStudentID() {
 		return studentID;
 	}
-	
-	public byte[] getInitialPacket(){
+	public byte[] getInitialPacket() {
 		return initialPacket;
 	}
-	
-	public DatagramSocket getInitialSocket(){
+	public DatagramSocket getInitialSocket() {
 		return initialSocket;
 	}
-
 	public int getNum() {
 		return num;
 	}
-
+	public byte[] getNum_byte() {
+		return intToByteArray(num);
+	}
 	public int getLen() {
 		return len;
 	}
-	
+	public byte[] getLen_byte() {
+		return intToByteArray(len);
+	}
 	public int getUdp_port() {
 		return udp_port;
 	}
-	public byte[] getUdp_port_byte(){
+	public byte[] getUdp_port_byte() {
 		return intToByteArray(udp_port);
 	}
-
 	public int getSecretA() {
 		return secretA;
 	}
 	public byte[] getSecretA_byte() {
 		return intToByteArray(secretA);
 	}
-
 	public int getTcp_port() {
 		return tcp_port;
 	}
 	public byte[] getTcp_port_byte() {
 		return intToByteArray(tcp_port);
 	}
-	public ServerSocket getTcpSocket(){
+	public ServerSocket getTcpSocket() {
 		return tcpSocket;
 	}
-
+	public Socket getTcpConnectionSocket() {
+		return connectionSocket;
+	}
 	public int getSecretB() {
 		return secretB;
 	}
 	public byte[] getSecretB_byte() {
 		return intToByteArray(secretB);
 	}
-
 	public int getNum2() {
 		return num2;
 	}
-	public byte[] getNum2_byte(){
+	public byte[] getNum2_byte() {
 		return intToByteArray(num2);
 	}
-
 	public int getLen2() {
 		return len2;
 	}
-	
-	public byte[] getLen2_byte(){
+	public byte[] getLen2_byte() {
 		return intToByteArray(len2);
 	}
-
 	public int getSecretC() {
 		return secretC;
 	}
-	
-	public byte[] getSecretC_byte(){
+	public byte[] getSecretC_byte() {
 		return intToByteArray(secretC);
 	}
-
 	public char getC() {
 		return c;
 	}
-
 	public int getSecretD() {
 		return secretD;
 	}
-
+	public byte[] getSecretD_byte() {
+		return intToByteArray(secretD);
+	}
 	public static int getHeaderLength() {
 		return HEADER_LENGTH;
 	}
-	
 	public InetAddress getSenderAddress() {
 		return senderAddress;
 	}
 	public int getSenderPort() {
 		return senderPort;
 	}
-	
-	
-
 }

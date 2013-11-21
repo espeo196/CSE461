@@ -3,26 +3,20 @@ package Project2;
 import java.nio.ByteBuffer;
 
 /**
- * Creates packets for different stages
- *
+ * Creates UDP packets and TCP payloads for different stages
+ * @author Benjamin Chan, Nicholas Johnson
  */
 public class PacketCreater {
-	public static final int HEADER_LENGTH = 12;
 	
 	/**
 	 * Generate packet for stageA
-	 * @param studentID 3 digit int in form of byte[].
-	 * @param secretA int secret to include in the packet.
-	 * @param num
-	 * @param len
-	 * @param udp_port
-	 * @param secretA
-	 * @return a byte[] containing the packet for stageA
+	 * @param values ServerValuesHolder containing commonly used values
+	 * @return a byte[] containing the packet for stage A
 	 */
 	public static byte[] stageAPacket(ServerValuesHolder values) {		
-		byte[] payload = new byte[16];
-		payload[3] = (byte) values.getNum(); // num
-		payload[7] = (byte) values.getLen(); // len
+		byte[] payload = new byte[ServerValuesHolder.HEADER_LENGTH + 4]; 
+		System.arraycopy(values.getNum_byte(), 0, payload, 0, 4);
+		System.arraycopy(values.getLen_byte(), 0, payload, 4, 4);
 		System.arraycopy(values.getUdp_port_byte(), 0, payload, 8, 4); // udp_port
 		System.arraycopy(values.getSecretA_byte(), 0, payload, 12, 4); // secretA
 		
@@ -31,8 +25,8 @@ public class PacketCreater {
 	
 	/**
 	 * Generates packet for stage B
-	 * @param studentID 3 digit int converted into bytes
-	 * @return
+	 * @param values ServerValuesHolder containing commonly used values
+	 * @return a byte[] containing the packet for stage B
 	 */
 	public static byte[] stageBPacket(ServerValuesHolder values) {
 		byte[] payload = new byte[8];
@@ -43,19 +37,18 @@ public class PacketCreater {
 	}
 	/**
 	 * Generates acknowledgement packet for stage B
-	 * @param studentID 3 digit int converted into bytes
+	 * @param values ServerValuesHolder containing commonly used values
 	 * @param id int packet_id of ACK
-	 * @return
+	 * @return a byte[] containing the ACK for stage B
 	 */
-	public static byte[] stageBAck(ServerValuesHolder values,int id) {
+	public static byte[] stageBAck(ServerValuesHolder values, int id) {
 		byte[] payload = new byte[4];
 		payload[3] = (byte) id;
 		return createPacket(values.getSecretA(), 1, values.getStudentID(), payload);
 	}
 	/**
 	 * Creates a packet to be sent to the client in stage C.
-	 * @param studentID 3 digit int converted into bytes
-	 * @param secretC int secret to include in packet
+	 * @param values ServerValuesHolder containing commonly used values
 	 * @return a byte[] containing the packet for stage C
 	 */
 	public static byte[] stageCPacket(ServerValuesHolder values) {
@@ -65,19 +58,31 @@ public class PacketCreater {
 		System.arraycopy(values.getSecretC_byte(), 0, payload, 8, 4);
 		payload[12] = (byte) values.getC();
 		
-		return createPacket(values.getSecretC(), 2, values.getStudentID(), payload);
+		return createPacket(values.getSecretB(), 2, values.getStudentID(), payload);
 	}
 	
 	/**
+	 * Creates a packet to be sent to the client in stage D.
+	 * @param values ServerValuesHolder containing commonly used values
+	 * @return a byte[] containing the packet for stage D
+	 */
+	public static byte[] stageDPacket(ServerValuesHolder values) {
+		byte[] payload = values.getSecretD_byte();
+		
+		return createPacket(values.getSecretC(), 2, values.getStudentID(), payload);
+	}
+	/**
+	 * Creates a byte array containing a header and payload.
+	 * See @createHeader for more details on what the header contains
 	 * 
 	 * @param psecret int secret to include in the packet.
 	 * @param step int
 	 * @param studentID 3 digit int.
-	 * @param payload into data to include in the packet.
+	 * @param payload byte[] data to include in the packet.
 	 * @return a byte[] containing a header and payload.
 	 */
 	public static byte[] createPacket(int psecret, int step, int studentID, byte[] payload) {
-		byte[] data = new byte[(int) (4*(Math.ceil((HEADER_LENGTH + payload.length)/4.0)))];
+		byte[] data = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + payload.length)/4.0)))];
 		byte[] header = createHeader(payload.length, psecret, step, studentID);
 		
 		System.arraycopy(header, 0, data, 0, header.length);
@@ -87,19 +92,27 @@ public class PacketCreater {
 	}
 	
 	/**
+	 * <pre>
 	 * Creates the packet header with the following format:
 	 *  0               1               2               3  
-	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|                           payload_len                         |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|                             psecret                           |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *	|             step               |  last 3 digits of student #  |
-	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                           payload_len                         |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                             psecret                           |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |             step               |  last 3 digits of student #  |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * </pre>
+	 *
+	 * @param payloadLen int length of payload to be included with this packet
+	 * @param psecret int secret to include in the packet.
+	 * @param step int
+	 * @param studentID 3 digit int.
+	 * @return a byte[] containing the header formatted as above
 	 */
 	private static byte[] createHeader(int payloadLen, int psecret, int step, int studentID) {
-		byte[] header = new byte[HEADER_LENGTH];
+		byte[] header = new byte[ServerValuesHolder.HEADER_LENGTH];
 		byte[] payloadLen_b = new byte[4];
 		byte[] psecret_b = new byte[4];
 		byte[] step_b = new byte[2];
@@ -119,6 +132,4 @@ public class PacketCreater {
 		
 		return header;
 	}
-	
-
 }
