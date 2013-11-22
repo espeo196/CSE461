@@ -40,6 +40,7 @@ public class ServerMain implements Runnable {
 	
 	@Override
 	public void run() {
+		this.displayStatus();
 		if(!this.stageA()) {
 			return ;
 		}
@@ -56,7 +57,7 @@ public class ServerMain implements Runnable {
 			return ;
 		}
 		System.out.println("stage D passed");
-		this.displayStatus();
+		
 	}
 	
 	/**
@@ -68,6 +69,7 @@ public class ServerMain implements Runnable {
 		// establish server socket
 		byte[] receivedData = values.getInitialPacket();		
 		try {
+			ServerValuesHolder.printPacket(receivedData, "----------------received stage A packet----------------");
 			// verify header and that the received packet is long enough
 			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageA(receivedData, values)) {
 				byte[] data = PacketCreater.stageAPacket(values);
@@ -92,7 +94,7 @@ public class ServerMain implements Runnable {
 	 */
 	public boolean stageB() {
 		try {
-			byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + values.getLen() + 4];
+			byte[] buffer = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + values.getLen())/4.0)))];
 			Random rand = new Random();
 			DatagramSocket socket = new DatagramSocket(values.getUdp_port());
 			socket.setSoTimeout(ServerValuesHolder.TIMEOUT);
@@ -101,10 +103,11 @@ public class ServerMain implements Runnable {
 			for(int i = 0; i < values.getNum(); i++) {
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 				socket.receive(packet);
+				
 				// randomly determine whether to ACK or not
 				if(rand.nextBoolean()&&verifySender(packet)) {					
 					byte[] receivedData = packet.getData();
-					
+					ServerValuesHolder.printPacket(receivedData, "----------------received stage B packet----------------");
 					// extract packet_id
 					if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageB(receivedData, values, i)) {
 					
@@ -146,7 +149,7 @@ public class ServerMain implements Runnable {
 			
 			System.out.println("Server has connected.");
 			byte[] data = PacketCreater.stageCPacket(values);
-			
+			ServerValuesHolder.printPacket(data, "----------------sent stage C packet----------------");
 			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
 			out.write(data);
 			
@@ -169,14 +172,15 @@ public class ServerMain implements Runnable {
 		try {
 			ServerSocket socket = values.getTcpSocket();
 			Socket connectionSocket = values.getTcpConnectionSocket();
+			socket.setSoTimeout(ServerValuesHolder.TIMEOUT);
 			
 			DataInputStream in = new DataInputStream(connectionSocket.getInputStream());
 			
-			byte[] buffer = new byte[ServerValuesHolder.HEADER_LENGTH + values.getLen2()];			
+			byte[] buffer = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + values.getLen2())/4.0)))];			
 			
 			for(int i = 0; i < values.getNum2(); i++) {
 				in.read(buffer);
-									
+				ServerValuesHolder.printPacket(buffer, "----------------received stage D packet----------------");
 				if(buffer.length <= ServerValuesHolder.HEADER_LENGTH || !PacketVerifier.verifyStageD(buffer, values)) {
 					// malformed packet received
 					System.out.println("Stage D malformed packet received");

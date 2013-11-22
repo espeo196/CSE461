@@ -85,6 +85,10 @@ public class PacketVerifier {
 		byte[] header = Arrays.copyOfRange(packet, 0, ServerValuesHolder.HEADER_LENGTH);
 		byte[] payload = Arrays.copyOfRange(packet, ServerValuesHolder.HEADER_LENGTH, packet.length);
 		
+		//check if payload length is divisible by 4
+		if (payload.length%4!=0){
+			return false;
+		}
 		// verify header
 		if(!verifyHeader(header, payload.length, psecret, step, studentID)) {
 			return false;
@@ -136,12 +140,12 @@ public class PacketVerifier {
 	 */
 	public static boolean verifyStageB(byte[] receivedData, ServerValuesHolder values, int packet_id) {
 		// create dummmy payload to test. Should be all 0's
-		byte[] zeroPayload = new byte[values.getLen()];
+		byte[] zeroPayload = new byte[(int) (4*(Math.ceil((values.getLen())/4.0)))];
 		for(int i = 0; i < zeroPayload.length; i++) {
 			zeroPayload[i] = 0x0;
 		}
 		
-		byte[] expectedPayload = new byte[4 + values.getLen()];
+		byte[] expectedPayload = new byte[zeroPayload.length+4];
 		byte[] id = ByteBuffer.allocate(4).putInt(packet_id).array();
 		System.arraycopy(id, 0, expectedPayload, 0, 4);
 		System.arraycopy(zeroPayload, 0, expectedPayload, 4, zeroPayload.length);
