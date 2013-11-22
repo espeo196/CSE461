@@ -16,8 +16,9 @@ import java.util.Random;
  *
  */
 public class ServerMain implements Runnable {
-	
-	public ServerValuesHolder values;
+	//stores all the variable used by the server
+	private ServerValuesHolder values;
+	//stores the result of different stages for display.
 	
 	/**
 	 * Constructor that sets up initial values including starting
@@ -65,24 +66,26 @@ public class ServerMain implements Runnable {
 	 * receive a packet from client
 	 * transmit a packet if it the client's packet is valid 
 	 */
-	public boolean stageA() {
+	private boolean stageA() {
 		// establish server socket
 		byte[] receivedData = values.getInitialPacket();		
 		try {
-			ServerValuesHolder.printPacket(receivedData, "----------------received stage A packet----------------");
+			printPacket(receivedData, "----------------received stage A packet----------------");
 			// verify header and that the received packet is long enough
 			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageA(receivedData, values)) {
 				byte[] data = PacketCreater.stageAPacket(values);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 				values.getInitialSocket().send(sendPacket);
+				printPacket(data, "Sent stage A packet to student: "+values.getStudentID()
+						+" at: "+values.getInitialSocket().getInetAddress().getHostAddress()
+						+" : "+values.getInitialSocket().getPort());
 				return true;
 			}else{
-				System.out.println("stage A packet not valid");
+				System.out.println("stage A malformed packet received");
 				return false;
 			}
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
-			e.printStackTrace();
 			return false;
 		}
 		
@@ -92,7 +95,7 @@ public class ServerMain implements Runnable {
 	 * Perform stage B
 	 * receive and acknowledge several packets.
 	 */
-	public boolean stageB() {
+	private boolean stageB() {
 		try {
 			byte[] buffer = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + values.getLen()+4)/4.0)))];
 			Random rand = new Random();
@@ -107,13 +110,16 @@ public class ServerMain implements Runnable {
 				// randomly determine whether to ACK or not
 				if(rand.nextBoolean()&&verifySender(packet)) {					
 					byte[] receivedData = packet.getData();
-					ServerValuesHolder.printPacket(receivedData, "----------------received stage B packet----------------");
+					printPacket(receivedData, "----------------received stage B packet----------------");
 					// extract packet_id
 					if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageB(receivedData, values, i)) {
 					
 						byte[] data = PacketCreater.stageBAck(values, i);
 						DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 						socket.send(sendPacket);
+						printPacket(data, "Sent stage B ACK packet to student: "+values.getStudentID()
+								+" at: "+values.getSenderAddress().getHostAddress()
+								+" : "+values.getSenderPort());
 					} else {
 						// malformed packet received
 						System.out.println("Stage B malformed packet received");
@@ -128,10 +134,13 @@ public class ServerMain implements Runnable {
 			byte[] data = PacketCreater.stageBPacket(values);
 			DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 			socket.send(sendPacket);
+			printPacket(data, "Sent stage B packet to student: "+values.getStudentID()
+					+" at: "+values.getSenderAddress().getHostAddress()
+					+" : "+values.getSenderPort());
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
-			e.printStackTrace();
+			return false;
 		}
 		return true; // success!
 	}
@@ -140,7 +149,7 @@ public class ServerMain implements Runnable {
 	 * Perform stage C. 
 	 * Set up a tcp connection and send a response.
 	 */
-	public boolean stageC() {
+	private boolean stageC() {
 		
 		try {
 			ServerSocket socket = new ServerSocket(values.getTcp_port());
@@ -149,7 +158,9 @@ public class ServerMain implements Runnable {
 			
 			System.out.println("Server has connected.");
 			byte[] data = PacketCreater.stageCPacket(values);
-			ServerValuesHolder.printPacket(data, "----------------sent stage C packet----------------");
+			printPacket(data, "Sent stage C packet to student: "+values.getStudentID()
+								+" at: "+values.getSenderAddress().getHostAddress()
+								+" : "+values.getSenderPort());
 			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
 			out.write(data);
 			
@@ -158,7 +169,6 @@ public class ServerMain implements Runnable {
 			return true;
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -167,7 +177,7 @@ public class ServerMain implements Runnable {
 	 * Perform stage D. 
 	 * Receive several payloads before responding.
 	 */
-	public boolean stageD() {
+	private boolean stageD() {
 		
 		try {
 			ServerSocket socket = values.getTcpSocket();
@@ -180,7 +190,7 @@ public class ServerMain implements Runnable {
 			
 			for(int i = 0; i < values.getNum2(); i++) {
 				in.read(buffer);
-				ServerValuesHolder.printPacket(buffer, "----------------received stage D packet----------------");
+				
 				if(buffer.length <= ServerValuesHolder.HEADER_LENGTH || !PacketVerifier.verifyStageD(buffer, values)) {
 					// malformed packet received
 					System.out.println("Stage D malformed packet received");
@@ -192,10 +202,12 @@ public class ServerMain implements Runnable {
 			byte[] data = PacketCreater.stageDPacket(values);
 			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
 			out.write(data);
+			printPacket(data, "Sent stage D packet to student: "+values.getStudentID()
+					+" at: "+values.getSenderAddress().getHostAddress()
+					+" : "+values.getSenderPort());
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
-			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -206,10 +218,10 @@ public class ServerMain implements Runnable {
 	 */
 	public void displayStatus(){
 		System.out.println(values.toString());
-		ServerValuesHolder.printPacket(PacketCreater.stageAPacket(values), "----------------stage A packet----------------");
-		ServerValuesHolder.printPacket(PacketCreater.stageBPacket(values), "----------------stage B packet----------------");
-		ServerValuesHolder.printPacket(PacketCreater.stageCPacket(values), "----------------stage C packet----------------");
-		ServerValuesHolder.printPacket(PacketCreater.stageDPacket(values), "----------------stage D packet----------------");
+		printPacket(PacketCreater.stageAPacket(values), "----------------Sent stage A packet----------------");
+		printPacket(PacketCreater.stageBPacket(values), "----------------Sent stage B packet----------------");
+		printPacket(PacketCreater.stageCPacket(values), "----------------Sent stage C packet----------------");
+		printPacket(PacketCreater.stageDPacket(values), "----------------Sent stage D packet----------------");
 	}
 	
 	/**
@@ -221,8 +233,44 @@ public class ServerMain implements Runnable {
 	private boolean verifySender(DatagramPacket packet){
 		InetAddress senderAddress = packet.getAddress();
 		int senderPort = packet.getPort();
-		
 		// boolean zen!
 		return values.getSenderAddress().equals(senderAddress) && values.getSenderPort() == senderPort;
+	}
+	
+	/**
+	 * Print out the content of the packet
+	 *
+	 * @param packet byte[] to have its contents printed.
+	 * @param title String to be shown before printing packet contents.
+	 */
+	public static void printPacket(byte[] packet, String title) {
+		if(title!=null)
+			System.out.println(title);
+		if(packet!=null) {
+			System.out.println("Packet Header:");
+			printByteArray(packet, 0, 12);
+			
+			System.out.println("Packet Content:");
+			printByteArray(packet, 12, packet.length);
+			
+			System.out.println("---------------");
+		}else{
+			System.out.println("null");
+		}	
+	}
+	/**
+	 * print out a the content of a byte array
+	 * Print out 4 bytes in the array on the same line
+	 * @param packet
+	 * @param offset
+	 * @param length
+	 */
+	private static void printByteArray(byte[] packet, int offset, int length) {
+		for (int j= offset; j < length; j++) {
+			System.out.format("0x%x ", packet[j]);
+	 		if((j+1)%4 == 0) {
+	 			System.out.println();
+	        }
+		}
 	}
 }

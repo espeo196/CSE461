@@ -12,6 +12,84 @@ public class PacketVerifier {
 	
 	/**
 	 * <pre>
+	 * Verifies whether packet from stage A (header and payload)
+	 *  payload of stage A
+	 *  0               1               2               3
+	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                                                               |
+	 *  |                        hello world                            |
+	 *  |                                                               |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * </pre>
+	 * @param values ServerValuesHolder containing commonly used values
+	 * @return true if the packet is valid
+	 */
+	public static boolean verifyStageA(byte[] packet, ServerValuesHolder values) {
+		return verifyPacket(packet, ServerValuesHolder.payloadInit, ServerValuesHolder.secretInit, 1,values.getStudentID());
+	}
+	
+	/**
+	 * Verifies the packet from stage B (header and payload)
+	 * payload of stage B
+	 *  0               1               2               3
+ 	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+ 	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                         packet_id                             |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                                                               |
+	 *  |                   payload of length len                       |
+	 *  |                                                               |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  </pre>
+	 * @param receivedData byte[] containing the payload and header to be verified
+	 * @param values ServerValuesHolder containing sever parameters
+	 * @param packet_id int that should be the expected packet_id
+	 * @return true if received data contains the correct information in its payload and header
+	 */
+	public static boolean verifyStageB(byte[] receivedData, ServerValuesHolder values, int packet_id) {
+		// create dummmy payload to test. Should be all 0's
+
+		byte[] expectedPayload = new byte[values.getLen()+4];
+		
+		for(int i = 0; i < expectedPayload.length; i++) {
+			expectedPayload[i] = 0x0;
+		}
+		byte[] id = ByteBuffer.allocate(4).putInt(packet_id).array();
+		System.arraycopy(id, 0, expectedPayload, 0, 4);
+
+		
+		return verifyPacket(receivedData, expectedPayload, values.getSecretA(), 1, values.getStudentID());
+	}
+	
+	/**
+	 * <pre>
+	 * Verifies the payloads from stage D.
+	 * payload of stage D
+	 *  0               1               2               3
+	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  |                                                               |
+	 *  |           payload of length len2 filled with char c           |
+	 *  |                                                               |
+	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *  </pre>
+	 * @param receivedData byte[] containing payload and header to be verified
+	 * @param values ServerValuesHolder containing server parameters
+	 * @return true if received data contains the correct information in its payload and header
+	 */
+	public static boolean verifyStageD(byte[] receivedData, ServerValuesHolder values) {
+		// create dummy payload to test. Should be all character C.
+		byte[] characterPayload = new byte[values.getLen2()];
+		for(int i = 0; i < characterPayload.length; i++) {
+			characterPayload[i] = (byte) values.getC();
+		}
+				
+		return verifyPacket(receivedData, characterPayload, values.getSecretC(), 1, values.getStudentID());
+	}
+	
+	/**
+	 * <pre>
 	 * Verifies whether the received header is in the correct format as follows:
 	 *  0               1               2               3  
  	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
@@ -95,84 +173,5 @@ public class PacketVerifier {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * <pre>
-	 * Verifies whether packet from stage A (header and payload)
-	 *  payload of stage A
-	 *  0               1               2               3
-	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |                                                               |
-	 *  |                        hello world                            |
-	 *  |                                                               |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 * </pre>
-	 * @param values ServerValuesHolder containing commonly used values
-	 * @return true if the packet is valid
-	 */
-	public static boolean verifyStageA(byte[] packet, ServerValuesHolder values) {
-		return verifyPacket(packet, ServerValuesHolder.payloadInit, ServerValuesHolder.secretInit, 1,values.getStudentID());
-	}
-	
-	/**
-	 * <pre>
-	 * Verifies the packet from stage B (header and payload)
-	 * payload of stage B
-	 *  0               1               2               3
- 	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
- 	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |                         packet_id                             |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |                                                               |
-	 *  |                   payload of length len                       |
-	 *  |                                                               |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  </pre>
-	 * @param receivedData byte[] containing the payload and header to be verified
-	 * @param values ServerValuesHolder containing commonly used values
-	 * @param packet_id int that should be the expected packet_id
-	 * @return true if received data contains the correct information in its payload and header
-	 */
-	public static boolean verifyStageB(byte[] receivedData, ServerValuesHolder values, int packet_id) {
-		// create dummmy payload to test. Should be all 0's
-
-		byte[] expectedPayload = new byte[values.getLen()+4];
-		
-		for(int i = 0; i < expectedPayload.length; i++) {
-			expectedPayload[i] = 0x0;
-		}
-		byte[] id = ByteBuffer.allocate(4).putInt(packet_id).array();
-		System.arraycopy(id, 0, expectedPayload, 0, 4);
-
-		
-		return verifyPacket(receivedData, expectedPayload, values.getSecretA(), 1, values.getStudentID());
-	}
-	
-	/**
-	 * <pre>
-	 * Verifies the payloads from stage D.
-	 * payload of stage D
-	 *  0               1               2               3
-	 *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  |                                                               |
-	 *  |           payload of length len2 filled with char c           |
-	 *  |                                                               |
-	 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	 *  </pre>
-	 * @param receivedData byte[] containing payload and header to be verified
-	 * @param values ServerValuesHolder containing commonly used values
-	 * @return true if received data contains the correct information in its payload and header
-	 */
-	public static boolean verifyStageD(byte[] receivedData, ServerValuesHolder values) {
-		// create dummy payload to test. Should be all character C.
-		byte[] characterPayload = new byte[values.getLen2()];
-		for(int i = 0; i < characterPayload.length; i++) {
-			characterPayload[i] = (byte) values.getC();
-		}
-				
-		return verifyPacket(receivedData, characterPayload, values.getSecretC(), 1, values.getStudentID());
 	}
 }
