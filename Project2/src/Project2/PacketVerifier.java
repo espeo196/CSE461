@@ -79,18 +79,15 @@ public class PacketVerifier {
 	 * @return
 	 */
 	private static boolean verifyPacket(byte[] packet, byte[] expectedPayload, int psecret, int step, int studentID) {
-		if(packet.length != expectedPayload.length + ServerValuesHolder.HEADER_LENGTH) {
+		int expectedLength=(int) (4*(Math.ceil((expectedPayload.length + ServerValuesHolder.HEADER_LENGTH)/4.0)));
+		if(packet.length != expectedLength) {
 			return false;
 		}
 		byte[] header = Arrays.copyOfRange(packet, 0, ServerValuesHolder.HEADER_LENGTH);
-		byte[] payload = Arrays.copyOfRange(packet, ServerValuesHolder.HEADER_LENGTH, packet.length);
+		byte[] payload = Arrays.copyOfRange(packet, ServerValuesHolder.HEADER_LENGTH, expectedPayload.length+ServerValuesHolder.HEADER_LENGTH);
 		
-		//check if payload length is divisible by 4
-		if (payload.length%4!=0){
-			return false;
-		}
 		// verify header
-		if(!verifyHeader(header, payload.length, psecret, step, studentID)) {
+		if(!verifyHeader(header, expectedPayload.length, psecret, step, studentID)) {
 			return false;
 		}
 		// verify payload content
@@ -140,15 +137,15 @@ public class PacketVerifier {
 	 */
 	public static boolean verifyStageB(byte[] receivedData, ServerValuesHolder values, int packet_id) {
 		// create dummmy payload to test. Should be all 0's
-		byte[] zeroPayload = new byte[(int) (4*(Math.ceil((values.getLen())/4.0)))];
-		for(int i = 0; i < zeroPayload.length; i++) {
-			zeroPayload[i] = 0x0;
-		}
+
+		byte[] expectedPayload = new byte[values.getLen()+4];
 		
-		byte[] expectedPayload = new byte[zeroPayload.length+4];
+		for(int i = 0; i < expectedPayload.length; i++) {
+			expectedPayload[i] = 0x0;
+		}
 		byte[] id = ByteBuffer.allocate(4).putInt(packet_id).array();
 		System.arraycopy(id, 0, expectedPayload, 0, 4);
-		System.arraycopy(zeroPayload, 0, expectedPayload, 4, zeroPayload.length);
+
 		
 		return verifyPacket(receivedData, expectedPayload, values.getSecretA(), 1, values.getStudentID());
 	}

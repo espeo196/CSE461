@@ -94,7 +94,7 @@ public class ServerMain implements Runnable {
 	 */
 	public boolean stageB() {
 		try {
-			byte[] buffer = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + values.getLen())/4.0)))];
+			byte[] buffer = new byte[(int) (4*(Math.ceil((ServerValuesHolder.HEADER_LENGTH + values.getLen()+4)/4.0)))];
 			Random rand = new Random();
 			DatagramSocket socket = new DatagramSocket(values.getUdp_port());
 			socket.setSoTimeout(ServerValuesHolder.TIMEOUT);
