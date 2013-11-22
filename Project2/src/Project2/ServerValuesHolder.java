@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -63,11 +64,12 @@ public class ServerValuesHolder{
 		len2 = rand.nextInt(20)+1;
 		num2 = rand.nextInt(20)+1;
 		
-		secretA = rand.nextInt();
-		secretB = rand.nextInt();
-		secretC = rand.nextInt();
-		secretD = rand.nextInt();
+		secretA = generateSecret();
+		secretB = generateSecret();
+		secretC = generateSecret();
+		secretD = generateSecret();
 		
+		c = (char)(rand.nextInt(26)+'a');
 		
 		udp_port = generateServerPort();
 		tcp_port = generateServerPort();
@@ -141,6 +143,18 @@ public class ServerValuesHolder{
 			return true;
 		}
 		return false;
+	}
+	/**
+	 * Generates a 4 byte secret contains random char
+	 * @return
+	 */
+	public int generateSecret(){
+		int secret=0;
+		Random rand=new Random();
+		for(int i=0; i<4; i++){
+			secret+=(rand.nextInt(26)+'a')<<( 8*i );
+		}
+		return secret;
 	}
 	
 	public int generateServerPort() {
@@ -238,12 +252,13 @@ public class ServerValuesHolder{
 	 * @return The byte array
 	 */
 	private static byte[] intToByteArray(int value) {
-		byte[] b = new byte[4];
-		for (int i = 0; i < 4; i++) {
-			int offset = (b.length - 1 - i) * 8;
-			b[i] = (byte) ((value >>> offset) & 0xFF);
-		}
-		return b;
+//		byte[] b = new byte[4];
+//		for (int i = 0; i < 4; i++) {
+//			int offset = (4 - 1 - i) * 8;
+//			b[i] = (byte) ((value >>> offset) & 0xFF);
+//		}
+//		return b;
+		return ByteBuffer.allocate(4).putInt(value).array();
 	}
 	
 	/**
