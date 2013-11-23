@@ -18,11 +18,14 @@ public class ServerRunner {
 		try {
 			DatagramSocket socket = new DatagramSocket(12235);	
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-			
+			System.out.println("CSE461 Project2 Server Started");
 			// receive request
 			while(true) {	
 				socket.receive(packet);
 				byte[] receivedData = packet.getData();
+				ServerMain.printPacket(receivedData, "Received stage A packet"
+						+" from: "+packet.getAddress().getHostAddress()
+						+" : "+packet.getPort());
 				if(receivedData.length > ServerValuesHolder.HEADER_LENGTH){
 					ServerMain server= new ServerMain(packet,socket);
 					Thread t = new Thread(server);

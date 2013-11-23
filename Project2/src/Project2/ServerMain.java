@@ -41,23 +41,31 @@ public class ServerMain implements Runnable {
 	
 	@Override
 	public void run() {
-		this.displayStatus();
+		//this.displayStatus();
 		if(!this.stageA()) {
 			return ;
 		}
-		System.out.println("stage A passed");
+		System.out.println("----------student :"
+							+values.getStudentID()
+							+" passed stage A----------");
 		if(!this.stageB()) {
 			return ; 
 		}
-		System.out.println("stage B passed");
+		System.out.println("----------student :"
+							+values.getStudentID()
+							+" passed stage B----------");
 		if(!this.stageC()) {
 			return ; 
 		}
-		System.out.println("stage C passed");
+		System.out.println("----------student :"
+							+values.getStudentID()
+							+" passed stage C----------");
 		if(!this.stageD()) {
 			return ;
 		}
-		System.out.println("stage D passed");
+		System.out.println("----------student :"
+							+values.getStudentID()
+							+" passed stage D----------");
 		
 	}
 	
@@ -70,15 +78,14 @@ public class ServerMain implements Runnable {
 		// establish server socket
 		byte[] receivedData = values.getInitialPacket();		
 		try {
-			printPacket(receivedData, "----------------received stage A packet----------------");
 			// verify header and that the received packet is long enough
 			if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageA(receivedData, values)) {
 				byte[] data = PacketCreater.stageAPacket(values);
 				DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 				values.getInitialSocket().send(sendPacket);
 				printPacket(data, "Sent stage A packet to student: "+values.getStudentID()
-						+" at: "+values.getInitialSocket().getInetAddress().getHostAddress()
-						+" : "+values.getInitialSocket().getPort());
+						+" at: "+sendPacket.getAddress().getHostAddress()
+						+" : "+sendPacket.getPort());
 				return true;
 			}else{
 				System.out.println("stage A malformed packet received");
@@ -110,7 +117,9 @@ public class ServerMain implements Runnable {
 				// randomly determine whether to ACK or not
 				if(rand.nextBoolean()&&verifySender(packet)) {					
 					byte[] receivedData = packet.getData();
-					printPacket(receivedData, "----------------received stage B packet----------------");
+					printPacket(receivedData, "Received stage B packet from student: "+values.getStudentID()
+							+" at: "+packet.getAddress().getHostAddress()
+							+" : "+packet.getPort());
 					// extract packet_id
 					if(receivedData.length > ServerValuesHolder.HEADER_LENGTH && PacketVerifier.verifyStageB(receivedData, values, i)) {
 					
@@ -118,8 +127,8 @@ public class ServerMain implements Runnable {
 						DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 						socket.send(sendPacket);
 						printPacket(data, "Sent stage B ACK packet to student: "+values.getStudentID()
-								+" at: "+values.getSenderAddress().getHostAddress()
-								+" : "+values.getSenderPort());
+								+" at: "+packet.getAddress().getHostAddress()
+								+" : "+packet.getPort());
 					} else {
 						// malformed packet received
 						System.out.println("Stage B malformed packet received");
@@ -135,8 +144,8 @@ public class ServerMain implements Runnable {
 			DatagramPacket sendPacket = new DatagramPacket(data, data.length, values.getSenderAddress(), values.getSenderPort());
 			socket.send(sendPacket);
 			printPacket(data, "Sent stage B packet to student: "+values.getStudentID()
-					+" at: "+values.getSenderAddress().getHostAddress()
-					+" : "+values.getSenderPort());
+					+" at: "+sendPacket.getAddress().getHostAddress()
+					+" : "+sendPacket.getPort());
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
@@ -159,8 +168,8 @@ public class ServerMain implements Runnable {
 			System.out.println("Server has connected.");
 			byte[] data = PacketCreater.stageCPacket(values);
 			printPacket(data, "Sent stage C packet to student: "+values.getStudentID()
-								+" at: "+values.getSenderAddress().getHostAddress()
-								+" : "+values.getSenderPort());
+					+" at: "+connectionSocket.getInetAddress().getHostAddress()
+					+" : "+connectionSocket.getPort());
 			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
 			out.write(data);
 			
@@ -190,6 +199,9 @@ public class ServerMain implements Runnable {
 			
 			for(int i = 0; i < values.getNum2(); i++) {
 				in.read(buffer);
+				printPacket(buffer, "Received stage D packet to student: "+values.getStudentID()
+						+" at: "+connectionSocket.getInetAddress().getHostAddress()
+						+" : "+connectionSocket.getPort());
 				
 				if(buffer.length <= ServerValuesHolder.HEADER_LENGTH || !PacketVerifier.verifyStageD(buffer, values)) {
 					// malformed packet received
@@ -203,8 +215,8 @@ public class ServerMain implements Runnable {
 			DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
 			out.write(data);
 			printPacket(data, "Sent stage D packet to student: "+values.getStudentID()
-					+" at: "+values.getSenderAddress().getHostAddress()
-					+" : "+values.getSenderPort());
+					+" at: "+connectionSocket.getInetAddress().getHostAddress()
+					+" : "+connectionSocket.getPort());
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("IOException caught: " + e.getMessage());
