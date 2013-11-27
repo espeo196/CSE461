@@ -10,6 +10,18 @@ public class PacketCreater {
 	
 	/**
 	 * Generate packet for stageA
+	 *  0               1               2               3
+ 	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                         num                                   |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                         len                                   |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                       udp_port                                |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                        secretA                                |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *
 	 * @param values ServerValuesHolder containing commonly used values
 	 * @return a byte[] containing the packet for stage A
 	 */
@@ -24,7 +36,32 @@ public class PacketCreater {
 	}
 	
 	/**
+	 * Generates acknowledgement packet for stage B
+	 * 0               1               2               3
+	 * 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * |                   acked_packet_id                             |
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * 
+	 * @param values ServerValuesHolder containing commonly used values
+	 * @param id int packet_id of ACK
+	 * @return a byte[] containing the ACK for stage B
+	 */
+	public static byte[] stageBAck(ServerValuesHolder values, int id) {
+		byte[] payload = ByteBuffer.allocate(4).putInt(id).array();
+		return createPacket(values.getSecretA(), 1, values.getStudentID(), payload);
+	}
+	
+	/**
 	 * Generates packet for stage B
+	 * 0               1               2               3
+ 	 * 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * |                          tcp_port                             |
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * |                          secretB                              |
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * 
 	 * @param values ServerValuesHolder containing commonly used values
 	 * @return a byte[] containing the packet for stage B
 	 */
@@ -35,19 +72,21 @@ public class PacketCreater {
 		
 		return createPacket(values.getSecretA(), 2, values.getStudentID(), payload);
 	}
-	/**
-	 * Generates acknowledgement packet for stage B
-	 * @param values ServerValuesHolder containing commonly used values
-	 * @param id int packet_id of ACK
-	 * @return a byte[] containing the ACK for stage B
-	 */
-	public static byte[] stageBAck(ServerValuesHolder values, int id) {
-		byte[] payload = new byte[4];
-		payload[3] = (byte) id;
-		return createPacket(values.getSecretA(), 1, values.getStudentID(), payload);
-	}
+
 	/**
 	 * Creates a packet to be sent to the client in stage C.
+	 *  0               1               2               3
+	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                           num2                                |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                           len2                                |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                          secretC                              |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|       c       |
+	 *	+-+-+-+-+-+-+-+-+
+	 *
 	 * @param values ServerValuesHolder containing commonly used values
 	 * @return a byte[] containing the packet for stage C
 	 */
@@ -63,6 +102,12 @@ public class PacketCreater {
 	
 	/**
 	 * Creates a packet to be sent to the client in stage D.
+	 * 0               1               2               3
+ 	 * 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * |                         secretD                               |
+	 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 * 
 	 * @param values ServerValuesHolder containing commonly used values
 	 * @return a byte[] containing the packet for stage D
 	 */

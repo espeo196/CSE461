@@ -6,7 +6,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -57,18 +56,19 @@ public class ServerValuesHolder{
 		initialSocket=null;
 		
 		Random rand = new Random();
-
+		//assign random int from 1 to 20 to len and num
 		len = rand.nextInt(20)+1;
 		num = rand.nextInt(20)+1;
 		len2 = rand.nextInt(20)+1;
 		num2 = rand.nextInt(20)+1;
-		
-		secretA = rand.nextInt();
-		secretB = rand.nextInt();
-		secretC = rand.nextInt();
-		secretD = rand.nextInt();
-		
-		
+		//assign random secret
+		secretA = generateSecret();
+		secretB = generateSecret();
+		secretC = generateSecret();
+		secretD = generateSecret();
+		//assign random char c
+		c = (char)(rand.nextInt(26)+'a');
+		//assign random port
 		udp_port = generateServerPort();
 		tcp_port = generateServerPort();
 		
@@ -111,7 +111,11 @@ public class ServerValuesHolder{
 			return false;
 		}
 	}
-	
+	/**
+	 * set the intial packet
+	 * @param initialPacket
+	 * @return null if value is null
+	 */
 	public boolean setInitialPacket(byte[] initialPacket) {
 		if(initialPacket!=null) {
 			this.initialPacket=initialPacket;
@@ -120,6 +124,11 @@ public class ServerValuesHolder{
 			return false;
 		}
 	}
+	/**
+	 * Set the initial
+	 * @param initialSocket
+	 * @return null if value is null
+	 */
 	public boolean setInitialSocket(DatagramSocket initialSocket) {
 		if(initialSocket!=null) {
 			this.initialSocket=initialSocket;
@@ -127,6 +136,11 @@ public class ServerValuesHolder{
 		}else
 			return false;
 	}
+	/**
+	 * Set the TCP socket
+	 * @param connectionSocket
+	 * @return null if value is null
+	 */
 	public boolean setTcpSocket(ServerSocket tcpSocket) {
 		if(tcpSocket != null) {
 			this.tcpSocket = tcpSocket;
@@ -134,7 +148,11 @@ public class ServerValuesHolder{
 		}
 		return false;
 	}
-	
+	/**
+	 * Set the TCP socket
+	 * @param connectionSocket
+	 * @return null if value is null
+	 */
 	public boolean setTcpConnectionSocket(Socket connectionSocket) {
 		if(connectionSocket != null) {
 			this.connectionSocket = connectionSocket;
@@ -142,7 +160,22 @@ public class ServerValuesHolder{
 		}
 		return false;
 	}
-	
+	/**
+	 * Generates  contains random char
+	 * @return a 4 byte char secret in form of byte array
+	 */
+	public int generateSecret(){
+		int secret=0;
+		Random rand=new Random();
+		for(int i=0; i<4; i++){
+			secret+=(rand.nextInt(26)+'a')<<( 8*i );
+		}
+		return secret;
+	}
+	/**
+	 * Randomly pick a available port within the available port numbers
+	 * @return the available port number
+	 */
 	public int generateServerPort() {
 		Random rand=new Random();
 		int randPort = 0;
@@ -240,60 +273,30 @@ public class ServerValuesHolder{
 	private static byte[] intToByteArray(int value) {
 		byte[] b = new byte[4];
 		for (int i = 0; i < 4; i++) {
-			int offset = (b.length - 1 - i) * 8;
+			int offset = (4 - 1 - i) * 8;
 			b[i] = (byte) ((value >>> offset) & 0xFF);
 		}
 		return b;
 	}
 	
 	/**
-	 * Print out the content of the packet
-	 *
-	 * @param packet byte[] to have its contents printed.
-	 * @param title String to be shown before printing packet contents.
+	 * print out the values 
 	 */
-	public static void printPacket(byte[] packet, String title) {
-		if(title!=null)
-			System.out.println(title);
-		if(packet!=null) {
-			System.out.println("Packet Header:");
-			printByteArray(packet, 0, 12);
-			
-			System.out.println("Packet Content:");
-			printByteArray(packet, 12, packet.length);
-			
-			System.out.println("---------------");
-		}else{
-			System.out.println("null");
-		}	
-	}
-	
-	private static void printByteArray(byte[] packet, int offset, int length) {
-		for (int j= offset; j < length; j++) {
-			System.out.format("0x%x ", packet[j]);
-	 		if((j+1)%4 == 0) {
-	 			System.out.println();
-	        }
-		}
-	}
-	
 	@Override
 	public String toString() {
 		return "\n Server Connection Status :[ \n"+
-				"\t"+"studentID=" + studentID + "\n"+
-				"\t"+"secretInit="+ secretInit + "\n"+
-				"\t"+"payloadInit=" + Arrays.toString(payloadInit)+ "\n"+
-				"\t"+"udp_portInit=" + udp_portInit + "\n"+
+				"\t"+"last 3 digits of studentID=" + studentID + "\n"+
+				"\t"+"client Address="+ senderAddress.getHostAddress()+ "\n"+
 				"\t"+"num=" + num + "\n"+
 				"\t"+"len=" + len + "\n"+
-				"\t"+"udp_port=" + udp_port + "\n"+ 
-				"\t"+"secretA=" + secretA + "\n"+
-				"\t"+"tcp_port=" + tcp_port + "\n"+
-				"\t"+"secretB=" + secretB + "\n"+
 				"\t"+"num2="+ num2 + "\n"+
 				"\t"+"len2=" + len2 + "\n"+
-				"\t"+"secretC=" + secretC + "\n"+
 				"\t"+"c=" + c + "\n"+
+				"\t"+"udp_port=" + udp_port + "\n"+
+				"\t"+"tcp_port=" + tcp_port + "\n"+
+				"\t"+"secretA=" + secretA + "\n"+
+				"\t"+"secretB=" + secretB + "\n"+
+				"\t"+"secretC=" + secretC + "\n"+
 				"\t"+"secretD=" + secretD + "]" + "\n" ;
 	}
 	
