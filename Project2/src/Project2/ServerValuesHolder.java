@@ -10,7 +10,7 @@ import java.util.Random;
 
 /**
  * Basic class for holding values that need to persist.
- *
+ * @author Benjamin Chan Nicholas Johnson
  */
 public class ServerValuesHolder{
 	public static final int HEADER_LENGTH = 12;
