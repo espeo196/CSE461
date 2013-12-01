@@ -12,26 +12,32 @@ import java.net.MulticastSocket;
  */
 public class MulticastSender {
 	
-	// TODO: broadcast datagram packets to the group
-	public static void send(String message) throws IOException {
-		// Which port should we send to
-		int port = 5000;
-		// Which address
-		String group = "225.4.5.6";
-		// Which ttl
-		int ttl = 1;
+	/**
+	 * Send a message to a local group.
+	 * 
+	 * @param message String message to send.
+	 * @param group String group to send to message to. Should be in the format 0.0.0.0
+	 * @param port int port to use
+	 * @throws IOException
+	 */
+	public static void send(String message, String group, int port) throws IOException {
+	
 		// Create the socket but we don't bind it as we are only going to send data
 		MulticastSocket s = new MulticastSocket();
+		
 		// Note that we don't have to join the multicast group if we are only
 		// sending data and not receiving
+		
 		// Fill the buffer with some data
 		byte[] buf = new byte[10];
-		for (int i=0; i<buf.length; i++) buf[i] = (byte)i;
+		for (int i=0; i < buf.length; i++) buf[i] = (byte)i;
+		
 		// Create a DatagramPacket 
 		DatagramPacket pack = new DatagramPacket(buf, buf.length,
 							 InetAddress.getByName(group), port);
-		// Do a send. Note that send takes a byte for the ttl and not an int.
-		s.send(pack,(byte)ttl);
+		// Do a send.
+		s.send(pack);
+		
 		// And when we have finished sending data close the socket
 		s.close();
 	}

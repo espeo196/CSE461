@@ -1,7 +1,6 @@
 package chatroom.serverless;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
@@ -12,28 +11,61 @@ import java.net.MulticastSocket;
  */
 
 public class ClientRunner {
-	public static final int inPort = 5000;
-	public static final String group= "225.4.5.6";
+	public static final int IN_PORT = 5000;
 	
-	public static MulticastSocket mcs;
+	// TODO: decide the group based on locale
+	public static final String GROUP = "225.4.5.6";
+	
 	public static void main(String[] args) {
-		// TODO: runs intro UI stuff
-		// TODO: runs receiving & UI on separate threads
+		MulticastSocket mcs = null;
+		
+		createReceiveSocket(mcs);
+		
+
+		// runs receiving & UI on separate threads
+		while(true) {	
+			MulticastClient client = new MulticastClient(mcs);
+			ConsoleUI ui = new ConsoleUI();
+			
+			Thread t1 = new Thread(client);
+			Thread t2 = new Thread(ui);
+			t1.start();
+			t2.start();
+		}
+		
 	}
-	//create socket, bind it to port and add to group
-	public static void createReceiveSocket(){
+
+	/**
+	 * Instantiates a MulticastSocket and binds it to the 
+	 * local group.
+	 * 
+	 * @param mcs MulticastSocket to be instantiated
+	 */
+	public static void createReceiveSocket(MulticastSocket mcs) {
 		try {
-			mcs = new MulticastSocket(inPort);
-			mcs.joinGroup(InetAddress.getByName(group));
+			mcs = new MulticastSocket(IN_PORT);
+			mcs.joinGroup(InetAddress.getByName(GROUP));
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			//print error message cannot create socket
+			System.out.println("Cannot create socket: " + e.getMessage());
 			e.printStackTrace();
 		}
 		
 	}
-	//do this when quit:
-	//s.leaveGroup(InetAddress.getByName(group));
-	//s.close();
+	
+	/**
+	 * Called when the user is leaving the chatroom. Exits the group
+	 * and closes the connection.
+	 * 
+	 * @param mcs MulticastSocket to be closed
+	 */
+	public static void leaveChatroom(MulticastSocket mcs) {
+		try {
+			mcs.leaveGroup(InetAddress.getByName(GROUP));
+			mcs.close();		
+		} catch (IOException e) {
+			System.out.println("Exception when attempting to leave chatroom: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 }
