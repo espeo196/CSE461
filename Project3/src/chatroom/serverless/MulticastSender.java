@@ -21,7 +21,9 @@ public class MulticastSender {
 	 * @throws IOException
 	 */
 	public static void send(String message, String group, int port) throws IOException {
-	
+		// TODO: use multicastPacket
+		// TODO: split packet when message is too large
+		
 		// Create the socket but we don't bind it as we are only going to send data
 		MulticastSocket s = new MulticastSocket();
 		
@@ -41,4 +43,6 @@ public class MulticastSender {
 		// And when we have finished sending data close the socket
 		s.close();
 	}
+	
+	
 }
