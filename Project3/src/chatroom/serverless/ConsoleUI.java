@@ -1,6 +1,7 @@
 package chatroom.serverless;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -56,6 +57,17 @@ public class ConsoleUI implements Runnable {
 	public static void printOutro()	{
 		System.out.println("**********************************************************");
 		System.out.println("Goodbye.");
+	}
+	
+	/**
+	 * Print out message receied
+	 * @param sender
+	 * @param content
+	 */
+	public static void printReceive(String sender, String content){
+		Date date = new Date( );
+		System.out.printf("%1$s : %2$s [ %3$tT %3$tm/%3$td]", 
+                sender , content, date);
 	}
 
 }
