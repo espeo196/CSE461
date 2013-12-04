@@ -29,19 +29,15 @@ public class MulticastSender {
 		// sending data and not receiving
 		
 		// Fill the buffer with some data
-		byte[] buf = new byte[10];
-		for (int i=0; i < buf.length; i++) buf[i] = (byte)i;
+    	byte[] buf = message.getBytes();
 		
 		// Create a DatagramPacket 
-		DatagramPacket pack = new DatagramPacket(buf, buf.length,
+		DatagramPacket packet = new DatagramPacket(buf, buf.length,
 							 InetAddress.getByName(group), port);
 		// Do a send.
-		s.send(pack);
+		s.send(packet);
 		
 		// And when we have finished sending data close the socket
 		s.close();
 	}
-	
-	
-	
 }

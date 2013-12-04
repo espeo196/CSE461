@@ -3,6 +3,7 @@ package chatroom.serverless;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 
 /**
  * 
@@ -11,28 +12,33 @@ import java.net.MulticastSocket;
  */
 
 public class ClientRunner {
-	public static final int IN_PORT = 5000;
+	public static final int IN_PORT = 8888;
 	
-	// TODO: decide the group based on locale
-	public static final String GROUP = "225.4.5.6";
+//	public static final String GROUP = "225.4.5.6";
+	public static String GROUP = "225.4.5.6";
+	public static boolean runThreads = true;
 	
-	public static void main(String[] args) {
+	
+	public static void main(String[] args) {		
 		MulticastSocket mcs = null;
 		
-		createReceiveSocket(mcs);
-		
-
-		// runs receiving & UI on separate threads
-		while(true) {	
-			MulticastClient client = new MulticastClient(mcs);
-			ConsoleUI ui = new ConsoleUI();
-			
-			Thread t1 = new Thread(client);
-			Thread t2 = new Thread(ui);
-			t1.start();
-			t2.start();
+		try {
+			GROUP = (InetAddress.getLocalHost()).getHostAddress();
+		} catch (UnknownHostException e) {
+			System.out.println("Exception when getting local host: " + e.getMessage());
+			e.printStackTrace();
 		}
 		
+		createReceiveSocket(mcs);
+
+		// runs receiving & UI on separate threads
+		MulticastClient client = new MulticastClient(mcs);
+		ConsoleUI ui = new ConsoleUI();
+		
+		Thread t1 = new Thread(client);
+		Thread t2 = new Thread(ui);
+		t1.start();
+		t2.start();
 	}
 
 	/**
@@ -50,7 +56,6 @@ public class ClientRunner {
 			System.out.println("Cannot create socket: " + e.getMessage());
 			e.printStackTrace();
 		}
-		
 	}
 	
 	/**
