@@ -1,33 +1,31 @@
-/**
- * 
- */
 package chatroom.serverless;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-
 /**
+ * Packets for sending 
  * @author benjamin
- * May not need this class if packets are simple enough, right now storing all the methods that are useful for processing byte[]
- * 
- * This class handles the message in a packet, adds headers to separate normal packets from ACK packets ( for connecting and disconnecting)
+ *
  */
-public class MulticastPacket {
-	private String content;
-	private String senderName;
-	private int size;			// has to be less than 1024byte?
+public class Packet implements Comparable<Packet>{
+	public static final int MAX_SIZE = 20;
+	private static final int HEADER_LENGTH = 12;
+	private byte[] content;
+	private int count;			// order of packet in a Message  ( reverse order )
 	private int type;			//
-	private static final int MAX_SIZE=1024; 	//use socket.getReceiveBufferSize()
+	private int id;
 	
 	/**get packet from byte array
 	 * packet structure
 	 * type : 0 = ACK (online), 1 =  ACK (offline), 2 = normal
-	 * count : need it only when long messages are split into few packets
+	 * count : order of packet in a message ( in reverse order)
 	 * content : store in ASCII
 	 *  0               1               2               3
  	 *	0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
 	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *	|                        type                                   |
+	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	 *	|                        id                                     |
 	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	 *	|                        count                                  |
 	 *	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -36,14 +34,14 @@ public class MulticastPacket {
 	 * @param packet packet receive
 	 * @throws UnsupportedEncodingException 
 	 */
-	public MulticastPacket(byte[] packet) throws UnsupportedEncodingException{
+	public Packet(byte[] packet) throws UnsupportedEncodingException{
 		if(packet.length>MAX_SIZE){
 			//error packet invalid
 		}
-		int type = byteArrayToInt(Arrays.copyOfRange(packet, 0, 4), 0);
-		int count =  byteArrayToInt(Arrays.copyOfRange(packet, 4, 8), 0);
-		String content= new String(Arrays.copyOfRange(packet,8, packet.length), "UTF-8");
-		
+		this.type = byteArrayToInt(Arrays.copyOfRange(packet, 0, 4), 0);
+		this.id =  byteArrayToInt(Arrays.copyOfRange(packet, 4, 8), 0);
+		this.count =  byteArrayToInt(Arrays.copyOfRange(packet, 8, 12), 0);
+		this.content = Arrays.copyOfRange(packet, HEADER_LENGTH, packet.length);
 	}
 	/**create packet
 	 * 
@@ -51,15 +49,26 @@ public class MulticastPacket {
 	 * @param soureceName
 	 * @param content
 	 */
-	public MulticastPacket(String soureceName, String content, int maxPacketSize){
-		
+	public Packet(int type, int id , int count, byte[] content){
+		if(content.length>MAX_SIZE-HEADER_LENGTH){
+			//error packet invalid
+		}
+		this.type = type;
+		this.id = id;
+		this.count = count;
+		this.content = content;
 	}
 	/**
-	 *  create normal packet to transfer message
+	 *  create byte array for sending transfer message
 	 * @return
 	 */
 	public byte[] createPacket(){
-		byte[] packet = new byte[MAX_SIZE];
+		byte[] packet = new byte[content.length+HEADER_LENGTH];
+		System.arraycopy(intToByteArray(type), 0, packet, 0, 4);
+		System.arraycopy(intToByteArray(id), 0, packet, 4, 4);
+		System.arraycopy(intToByteArray(count), 0, packet, 8, 4);
+		System.arraycopy(content, 0, packet, 12, content.length);
+		
 		return packet;
 	}
 	
@@ -68,9 +77,50 @@ public class MulticastPacket {
 	 * type == 1 , count == 1, content = name
 	 * @return
 	 */
-	public byte[] createACK(){
-		byte[] packet = new byte[MAX_SIZE];
-		return packet;
+	public static byte[] createACK(String name){
+		byte[] nameB = stringToByte(name);
+		Packet pk = new Packet(0, 0 , 1 , nameB);  
+		return pk.createPacket();
+	}
+	
+	public static byte[] createFIN(){
+		byte[] nameB = stringToByte(" ");
+		Packet pk = new Packet(1, 0 , 1 , nameB);  
+		return pk.createPacket();
+	}
+	
+	public int getType(){
+		return type;
+	}
+	public int getCount(){
+		return count;
+	}
+	public int getID(){
+		return id;
+	}
+	public byte[] getContent(){
+		return content;
+	}
+	public String getText() throws UnsupportedEncodingException{
+		return byteToString(content);
+	}
+	
+	/**
+	 * Comparator 
+	 * @param other
+	 * @return
+	 */
+	@Override
+	public int compareTo(Packet other){
+		return other.count > this.count ? +1 : other.count < this.count ? -1 : 0;
+	}
+
+	/** print values
+	 * 
+	 */
+	public String toString(){
+		return null;
+		
 	}
 	/**
 	 * Convert String with ASCII encoding to byte[] 
@@ -130,17 +180,7 @@ public class MulticastPacket {
 		}
 		return b;
 	}
-	public String getSenderName(){
-		return senderName;
-	}
-	public String getContent(){
-		return content;
-	}
-	/** print values
-	 * 
-	 */
-	public String toString(){
-		return content;
-		
-	}
+
+
+
 }

@@ -12,34 +12,35 @@ import java.util.Scanner;
 public class ConsoleUI implements Runnable {
 	public static final String EXIT_STRING = "exit";
 	private String username = "";
+	Scanner console = new Scanner(System.in);
 	
 	@Override
 	public void run() {
 		try {
-			printIntro();
-			getInput();
+			printIntro(console);
+			getInput(console);
 		} catch (IOException e) {
 			System.out.println("IOException occurred: " + e.getMessage());
 			e.printStackTrace();
 		}
-				
+		console.close();
 		printOutro();
 	}
 
-	public void printIntro() throws IOException	{
+	public void printIntro(Scanner console) throws IOException	{
 		System.out.println("**********************************************************");
 		System.out.println("Welcome to the serverless chatroom.");
 		System.out.println("You will be connected to the chatroom for your local area.");
 		System.out.println("You will be connected to the chatroom for your local area.");
 		System.out.println("**********************************************************");
 	
-		Scanner console = new Scanner(System.in);
+		
 		System.out.println();
 		System.out.println("What's your username? ");
 		username = console.nextLine();
 	
-		MulticastSender.send(username + " has joined the chatroom.", ClientRunner.GROUP, ClientRunner.IN_PORT);
-		console.close();
+		MulticastSender.send(Packet.createACK(username), ClientRunner.GROUP, ClientRunner.IN_PORT);
+		
 	}
 	
 	/**
@@ -47,21 +48,21 @@ public class ConsoleUI implements Runnable {
 	 * Exits when the user types "exit" case insensitive.
 	 * @throws IOException 
 	 */
-	public void getInput() throws IOException {
-		Scanner console = new Scanner(System.in);
+	public void getInput(Scanner console) throws IOException {
 		String message = "";
 		System.out.println("Type \"exit\" to exit the chatroom.");
 		
 		while(ClientRunner.runThreads) {
-			message = username + ": " + console.nextLine();
+			message = console.nextLine();
 			
 			if(!message.equalsIgnoreCase(EXIT_STRING)) {
-				MulticastSender.send(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
+				MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
 			} else {
+				MulticastSender.send(Packet.createFIN(), ClientRunner.GROUP, ClientRunner.IN_PORT);
 				ClientRunner.runThreads = false;
 			}
 		}
-		console.close();
+		
 	}
 	
 	public void printOutro()	{
@@ -76,7 +77,7 @@ public class ConsoleUI implements Runnable {
 	 */
 	public static void printReceive(String sender, String content){
 		Date date = new Date( );
-		System.out.printf("%1$s : %2$s [ %3$tT %3$tm/%3$td]", 
+		System.out.printf("%1$s : %2$s [ %3$tT %3$tm/%3$td]\n", 
                 sender , content, date);
 	}
 

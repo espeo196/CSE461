@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 
@@ -13,57 +15,77 @@ import java.util.Arrays;
 public class MulticastClient implements Runnable {
 	// TODO: keep track of clients on the same network
 	private MulticastSocket mcs;
+	private Map<Integer,Message> messages;
 	
 	public MulticastClient(MulticastSocket mcs) {
-		this.mcs = mcs;
+		if(mcs != null){
+			this.mcs = mcs;
+			messages = new TreeMap<Integer,Message>();
+		}else{
+			System.err.println("Error: socket not found");
+		}
 	}
 
 	@Override
 	public void run() {
 		// TODO: create a multicastPacket and display the content
 		try {
-			byte[] buf = new byte[1024];
 			DatagramPacket packet = null;
 			
 			while(ClientRunner.runThreads) {
+				byte[] buf = new byte[1024];
 				packet = new DatagramPacket(buf, buf.length);
 				mcs.receive(packet);
-				
-				// for debugging
-				System.out.println("Received data from: " + packet.getAddress().toString() +
-						":" + packet.getPort() + " with length: " +
-						packet.getLength());
-
 				//process packet
-				byte[] data = packet.getData();
-				if(data != null && data.length > 0) {
-					int type = byteArrayToInt(Arrays.copyOfRange(data, 0, 4), 0);
-					int count = byteArrayToInt(Arrays.copyOfRange(data, 4, 8), 0);
-					String content = new String(Arrays.copyOfRange(data, 8, packet.getLength()), "UTF-8");
-					System.out.println(content);
-				}				
-				System.out.println();
-			}
+				Packet received = new Packet(packet.getData());
+				// for debugging
+				System.out.println("Received packet from: " + packet.getAddress().toString() +
+						":" + packet.getPort() + " with length: " +
+						packet.getLength() +
+						" id= " + received.getID()+
+						" count = "+ received.getCount()
+						);
+
+				
+				// TODO: Find sender
+				String sender = "";
+				
+				if(received.getType() == 0){
+					// peer online, add to list
+					System.out.println(received.getText()+" has join the chatrooom");
+				}else if(received.getType() == 1){
+					// peer offline, remove from list
+					System.out.println(received.getText()+" has left the chatroom");
+				}else{
+					// received message packet, arrange the packet into corresponding message
+					if(messages.containsKey(received.getID())){
+						messages.get(received.getID()).addPacket(received);
+						
+						//check if the message arrived completely
+						//assume packet arrives in order
+						if(received.getCount()==1){
+							String output = "";
+							for(int i=0 ; i < messages.get(received.getID()).getSize();i++){
+								output += messages.get(received.getID()).getPacket(i).getText();
+							}
+							ConsoleUI.printReceive(sender, output);
+							messages.remove(received.getID());
+						}
+						
+					}else{
+						// print out directly
+						if(received.getCount() == 1){
+							ConsoleUI.printReceive(sender, received.getText());
+						}else{
+							messages.put(received.getID(), new Message(received));
+						}
+					}					
+				}
+			}	
 		} catch (IOException e) {
 			System.out.println("IOException while receiving: " + e.getMessage());
 			e.printStackTrace();
 		}	
-	}
-	
-	/**
-	 * Convert the byte array to an int.
-	 *
-	 * @param b The byte array
-	 * @param offset The array offset
-	 * @return The integer
-	 */
-	private static int byteArrayToInt(byte[] b, int offset) {
-	    int value = 0;
-	    for (int i = 0; i < b.length; i++) {
-	        int shift = (b.length - 1 - i) * 8;
-	        value += (b[i + offset] & 0x000000FF) << shift;
-	    }
-	    return value;
 	}
 
 }
