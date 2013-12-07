@@ -20,7 +20,7 @@ public class MulticastSender {
 	 * @param port int port to use
 	 * @throws IOException
 	 */
-	public static void send(String message, String group, int port) throws IOException {
+	public static void sendMessage(String message, String group, int port) throws IOException {
 		
 		// Create the socket but we don't bind it as we are only going to send data
 		MulticastSocket s = new MulticastSocket();
@@ -28,16 +28,28 @@ public class MulticastSender {
 		// Note that we don't have to join the multicast group if we are only
 		// sending data and not receiving
 		
-		// Fill the buffer with some data
-    	byte[] buf = message.getBytes();
+		Message msg= new Message(message);
 		
-		// Create a DatagramPacket 
-		DatagramPacket packet = new DatagramPacket(buf, buf.length,
-							 InetAddress.getByName(group), port);
-		// Do a send.
+		for(int i=0;i<msg.getSize();i++){
+			// Create a DatagramPacket 
+			//send packet
+			byte[] buf = msg.getPacket(i).createPacket();
+			DatagramPacket packet = new DatagramPacket(buf , buf.length,
+								 InetAddress.getByName(group), port);
+			// Do a send.
+			s.send(packet);
+		}
+		// And when we have finished sending data close the socket
+		s.close();
+	}
+	public static void send(byte[] buf, String group, int port) throws IOException{
+		// Create the socket but we don't bind it as we are only going to send data
+		MulticastSocket s = new MulticastSocket();
+		
+		DatagramPacket packet = new DatagramPacket(buf , buf.length,
+								 InetAddress.getByName(group), port);
 		s.send(packet);
 		
-		// And when we have finished sending data close the socket
 		s.close();
 	}
 }

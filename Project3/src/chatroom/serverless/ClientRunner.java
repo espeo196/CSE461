@@ -21,16 +21,22 @@ public class ClientRunner {
 	
 	public static void main(String[] args) {		
 		MulticastSocket mcs = null;
+//		try {
+//			GROUP = (InetAddress.getLocalHost()).getHostAddress();
+//		} catch (UnknownHostException e) {
+//			System.out.println("Exception when getting local host: " + e.getMessage());
+//			e.printStackTrace();
+//		}
 		
 		try {
-			GROUP = (InetAddress.getLocalHost()).getHostAddress();
-		} catch (UnknownHostException e) {
-			System.out.println("Exception when getting local host: " + e.getMessage());
+			mcs = new MulticastSocket(IN_PORT);
+			mcs.joinGroup(InetAddress.getByName(GROUP));
+			
+		} catch (IOException e) {
+			System.out.println("Cannot create socket: " + e.getMessage());
 			e.printStackTrace();
 		}
 		
-		createReceiveSocket(mcs);
-
 		// runs receiving & UI on separate threads
 		MulticastClient client = new MulticastClient(mcs);
 		ConsoleUI ui = new ConsoleUI();
