@@ -1,6 +1,9 @@
 package chatroom.serverless;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -49,17 +52,18 @@ public class ConsoleUI implements Runnable {
 	 * @throws IOException 
 	 */
 	public void getInput(Scanner console) throws IOException {
-		String message = "";
+		String message = null;
 		System.out.println("Type \"exit\" to exit the chatroom.");
 		
 		while(ClientRunner.runThreads) {
 			message = console.nextLine();
-			
-			if(!message.equalsIgnoreCase(EXIT_STRING)) {
-				MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
-			} else {
-				MulticastSender.send(Packet.createFIN(), ClientRunner.GROUP, ClientRunner.IN_PORT);
-				ClientRunner.runThreads = false;
+			if(message!=null &&!message.isEmpty() && !message.trim().equals("") && !message.trim().equals("\n")){
+				if(!message.equalsIgnoreCase(EXIT_STRING)) {
+					MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
+				} else {
+					MulticastSender.send(Packet.createFIN(), ClientRunner.GROUP, ClientRunner.IN_PORT);
+					ClientRunner.runThreads = false;
+				}
 			}
 		}
 		
@@ -77,8 +81,17 @@ public class ConsoleUI implements Runnable {
 	 */
 	public static void printReceive(String sender, String content){
 		Date date = new Date( );
-		System.out.printf("%1$s : %2$s [ %3$tT %3$tm/%3$td]\n", 
+		System.out.printf("%1$s [ %3$tT %3$tm/%3$td] : %2$s \n", 
                 sender , content, date);
+	}
+	public static void printReceive(String sender, Message message ) throws UnsupportedEncodingException{
+		Date date = new Date( );
+		System.out.print(sender);
+		System.out.printf(" [ %1$tT %1$tm/%1$td] : ", date);
+		for(int i=0;i<message.getSize();i++){
+			System.out.print(message.getPacket(i).getText());
+		}
+		System.out.println();
 	}
 
 }

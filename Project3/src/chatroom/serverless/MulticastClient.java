@@ -1,6 +1,8 @@
 package chatroom.serverless;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.Arrays;
@@ -39,13 +41,13 @@ public class MulticastClient implements Runnable {
 				//process packet
 				Packet received = new Packet(packet.getData());
 				// for debugging
-				System.out.println("Received packet from: " + packet.getAddress().toString() +
+				/*System.out.println("Received packet from: " + packet.getAddress().toString() +
 						":" + packet.getPort() + " with length: " +
 						packet.getLength() +
 						" id= " + received.getID()+
 						" count = "+ received.getCount()
 						);
-
+				*/
 				
 				// TODO: Find sender
 				String sender = "";
@@ -60,15 +62,11 @@ public class MulticastClient implements Runnable {
 					// received message packet, arrange the packet into corresponding message
 					if(messages.containsKey(received.getID())){
 						messages.get(received.getID()).addPacket(received);
-						
+
 						//check if the message arrived completely
 						//assume packet arrives in order
 						if(received.getCount()==1){
-							String output = "";
-							for(int i=0 ; i < messages.get(received.getID()).getSize();i++){
-								output += messages.get(received.getID()).getPacket(i).getText();
-							}
-							ConsoleUI.printReceive(sender, output);
+							ConsoleUI.printReceive(sender,messages.get(received.getID()) );
 							messages.remove(received.getID());
 						}
 						

@@ -21,10 +21,10 @@ public class Message {
 	private int id; 
 	
 	public Message(String content){
-		packets = new ArrayList<Packet>();
-		createPackets(content);
 		Random rand = new Random();
 		id = rand.nextInt();
+		packets = new ArrayList<Packet>();
+		createPackets(content);
 	}
 	public Message(Packet packet){
 		id = packet.getID();
