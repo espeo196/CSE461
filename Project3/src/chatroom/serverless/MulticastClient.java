@@ -35,7 +35,7 @@ public class MulticastClient implements Runnable {
 			DatagramPacket packet = null;
 			
 			while(ClientRunner.runThreads) {
-				byte[] buf = new byte[1024];
+				byte[] buf = new byte[Packet.MAX_SIZE+Packet.HEADER_LENGTH];
 				packet = new DatagramPacket(buf, buf.length);
 				mcs.receive(packet);
 				//process packet
@@ -58,7 +58,7 @@ public class MulticastClient implements Runnable {
 				}else if(received.getType() == 1){
 					// peer offline, remove from list
 					System.out.println(received.getText()+" has left the chatroom");
-				}else{
+				}else if(received.getType() == 2){
 					// received message packet, arrange the packet into corresponding message
 					if(messages.containsKey(received.getID())){
 						messages.get(received.getID()).addPacket(received);
@@ -68,8 +68,7 @@ public class MulticastClient implements Runnable {
 						if(received.getCount()==1){
 							ConsoleUI.printReceive(sender,messages.get(received.getID()) );
 							messages.remove(received.getID());
-						}
-						
+						}	
 					}else{
 						// print out directly
 						if(received.getCount() == 1){
@@ -77,6 +76,20 @@ public class MulticastClient implements Runnable {
 						}else{
 							messages.put(received.getID(), new Message(received));
 						}
+					}					
+				}else if ( received.getType() == 3){
+					if(messages.containsKey(received.getID())){
+						messages.get(received.getID()).addPacket(received);
+
+						//check if the message arrived completely
+						//assume packet arrives in order
+						if(received.getCount()==1){
+							FileProcessor.write(messages.get(received.getID()));
+							messages.remove(received.getID());
+						}
+						
+					}else{
+						messages.put(received.getID(), new Message(received));
 					}					
 				}
 			}	

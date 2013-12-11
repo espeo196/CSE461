@@ -9,7 +9,7 @@ import java.util.Arrays;
  */
 public class Packet implements Comparable<Packet>{
 	public static final int MAX_SIZE = 20;
-	private static final int HEADER_LENGTH = 12;
+	public static final int HEADER_LENGTH = 12;
 	private byte[] content;
 	private int count;			// order of packet in a Message  ( reverse order )
 	private int type;			//
@@ -17,7 +17,7 @@ public class Packet implements Comparable<Packet>{
 	
 	/**get packet from byte array
 	 * packet structure
-	 * type : 0 = ACK (online), 1 =  ACK (offline), 2 = normal
+	 * type : 0 = ACK (online), 1 =  ACK (offline), 2 = normal 3 = file
 	 * count : order of packet in a message ( in reverse order)
 	 * content : store in ASCII
 	 *  0               1               2               3
@@ -102,7 +102,8 @@ public class Packet implements Comparable<Packet>{
 		return content;
 	}
 	public String getText() throws UnsupportedEncodingException{
-		return byteToString(content);
+		//TODO: set encoding
+		return byteToString(content); 
 	}
 	
 	/**

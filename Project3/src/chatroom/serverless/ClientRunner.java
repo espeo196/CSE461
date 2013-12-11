@@ -15,11 +15,12 @@ public class ClientRunner {
 	public static final int IN_PORT = 8888;
 	
 //	public static final String GROUP = "225.4.5.6";
-	public static String GROUP = "225.4.5.6";
+	public static String GROUP = "225.4.5.14";
 	public static boolean runThreads = true;
 	
 	
 	public static void main(String[] args) {		
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		MulticastSocket mcs = null;
 //		try {
 //			GROUP = (InetAddress.getLocalHost()).getHostAddress();
