@@ -20,10 +20,13 @@ public class Message {
 	private List<Packet> packets;
 	private int id; 
 	
-	public Message(String content){
+	public Message(){
 		Random rand = new Random();
 		id = rand.nextInt();
 		packets = new ArrayList<Packet>();
+	}
+	public Message(String content){
+		this();		
 		createPackets(content);
 	}
 	public Message(Packet packet){
@@ -58,6 +61,9 @@ public class Message {
 	}
 	public Packet getPacket(int id){
 		return packets.get(id); 
+	}
+	public int getID(){
+		return id;
 	}
 
 }

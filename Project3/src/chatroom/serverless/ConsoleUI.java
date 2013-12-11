@@ -12,8 +12,11 @@ import java.util.Scanner;
  * @author Benjamin Chan, Nicholas Johnson
  *
  */
+// TODO: manage the name list
+// TODO: menu for file transfer
+
 public class ConsoleUI implements Runnable {
-	public static final String EXIT_STRING = "exit";
+	public static final String EXIT_STRING = "/exit";
 	private String username = "";
 	Scanner console = new Scanner(System.in);
 	
@@ -53,16 +56,21 @@ public class ConsoleUI implements Runnable {
 	 */
 	public void getInput(Scanner console) throws IOException {
 		String message = null;
-		System.out.println("Type \"exit\" to exit the chatroom.");
+		System.out.println("Type "+EXIT_STRING+" to exit the chatroom.");
 		
 		while(ClientRunner.runThreads) {
 			message = console.nextLine();
 			if(message!=null &&!message.isEmpty() && !message.trim().equals("") && !message.trim().equals("\n")){
-				if(!message.equalsIgnoreCase(EXIT_STRING)) {
-					MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
-				} else {
+				if(message.equalsIgnoreCase(EXIT_STRING)) {
+					//exit
 					MulticastSender.send(Packet.createFIN(), ClientRunner.GROUP, ClientRunner.IN_PORT);
 					ClientRunner.runThreads = false;
+				} else if(message.split(" ").length == 2 && message.split(" ")[0].equalsIgnoreCase("/file")){
+					//transfer file
+					Message msg =FileProcessor.read(message.split(" ")[1]);
+					MulticastSender.sendMessage(msg, ClientRunner.GROUP, ClientRunner.IN_PORT);
+				}else {
+					MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
 				}
 			}
 		}
