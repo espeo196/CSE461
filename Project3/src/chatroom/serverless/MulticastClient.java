@@ -1,11 +1,8 @@
 package chatroom.serverless;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -15,7 +12,6 @@ import java.util.TreeMap;
  *
  */
 public class MulticastClient implements Runnable {
-	// TODO: keep track of clients on the same network
 	private MulticastSocket mcs;
 	private Map<Integer,Message> messages;
 	
@@ -30,7 +26,6 @@ public class MulticastClient implements Runnable {
 
 	@Override
 	public void run() {
-		// TODO: create a multicastPacket and display the content
 		try {
 			DatagramPacket packet = null;
 			
@@ -49,50 +44,59 @@ public class MulticastClient implements Runnable {
 						);
 				*/
 				
-				// TODO: Find sender
-				String sender = "";
+				// don't print things from you!
+				// messages from you will always start with 'username: message'
+				// except for ACKS which are just 'username'
+				if(!received.getText().startsWith(ClientRunner.username)) {			
 				
-				if(received.getType() == 0){
-					// peer online, add to list
-					System.out.println(received.getText()+" has join the chatrooom");
-				}else if(received.getType() == 1){
-					// peer offline, remove from list
-					System.out.println(received.getText()+" has left the chatroom");
-				}else if(received.getType() == 2){
-					// received message packet, arrange the packet into corresponding message
-					if(messages.containsKey(received.getID())){
-						messages.get(received.getID()).addPacket(received);
-
-						//check if the message arrived completely
-						//assume packet arrives in order
-						if(received.getCount()==1){
-							ConsoleUI.printReceive(sender,messages.get(received.getID()) );
-							messages.remove(received.getID());
-						}	
-					}else{
-						// print out directly
-						if(received.getCount() == 1){
-							ConsoleUI.printReceive(sender, received.getText());
-						}else{
-							messages.put(received.getID(), new Message(received));
-						}
-					}					
-				}else if ( received.getType() == 3){
-					if(messages.containsKey(received.getID())){
-						messages.get(received.getID()).addPacket(received);
-
-						//check if the message arrived completely
-						//assume packet arrives in order
-						if(received.getCount()==1){
-							FileProcessor.write(messages.get(received.getID()));
-							messages.remove(received.getID());
-						}
+					if(received.getType() == 0) {
+						// peer online, add to list
+						System.out.println(received.getText() + " is in the chatrooom");
+						ClientRunner.userList.add(received.getText());
 						
-					}else{
-						messages.put(received.getID(), new Message(received));
-					}					
-				}
-			}	
+						// let the new user know that you're connected
+						MulticastSender.send(Packet.createACK(ClientRunner.username), 
+								ClientRunner.GROUP, ClientRunner.IN_PORT);
+					} else if(received.getType() == 1) {
+						// peer offline, remove from list
+						System.out.println(received.getText() + " has left the chatroom");
+						ClientRunner.userList.remove(received.getText());
+					} else if(received.getType() == 2) {
+						// received message packet, arrange the packet into corresponding message
+						if(messages.containsKey(received.getID())) {
+							messages.get(received.getID()).addPacket(received);
+	
+							//check if the message arrived completely
+							//assume packet arrives in order
+							if(received.getCount()==1) {
+								ConsoleUI.printReceive(messages.get(received.getID()));
+								messages.remove(received.getID());
+							}	
+						} else {
+							// print out directly
+							if(received.getCount() == 1) {
+								ConsoleUI.printReceive(received.getText());
+							} else {
+								messages.put(received.getID(), new Message(received));
+							}
+						}					
+					} else if ( received.getType() == 3) {
+						if(messages.containsKey(received.getID())) {
+							messages.get(received.getID()).addPacket(received);
+	
+							//check if the message arrived completely
+							//assume packet arrives in order
+							if(received.getCount()==1) {
+								FileProcessor.write(messages.get(received.getID()));
+								messages.remove(received.getID());
+							}
+							
+						} else {
+							messages.put(received.getID(), new Message(received));
+						}					
+					}
+				}	
+			}
 		} catch (IOException e) {
 			System.out.println("IOException while receiving: " + e.getMessage());
 			e.printStackTrace();

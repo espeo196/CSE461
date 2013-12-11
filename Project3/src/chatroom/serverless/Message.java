@@ -1,6 +1,3 @@
-/**
- * 
- */
 package chatroom.serverless;
 
 import java.io.UnsupportedEncodingException;
@@ -10,59 +7,64 @@ import java.util.List;
 import java.util.Random;
 
 
-/**
- * @author benjamin
- * May not need this class if packets are simple enough, right now storing all the methods that are useful for processing byte[]
- * 
+/** 
  * This class handles the message in a packet, adds headers to separate normal packets from ACK packets ( for connecting and disconnecting)
+ * 
+ * @author Benjamin Chan, Nicholas Johnson
  */
 public class Message {
 	private List<Packet> packets;
 	private int id; 
 	
-	public Message(){
+	public Message() {
 		Random rand = new Random();
 		id = rand.nextInt();
 		packets = new ArrayList<Packet>();
 	}
-	public Message(String content){
+	public Message(String content) {
 		this();		
 		createPackets(content);
 	}
-	public Message(Packet packet){
+	public Message(Packet packet) {
 		id = packet.getID();
 		packets = new ArrayList<Packet>();
 		packets.add(packet);	
 	}
-	public void addPacket(Packet packet){
+	public void addPacket(Packet packet) {
 		packets.add(packet);
 	}
 	
-	private void createPackets(String content){
+	/**
+	 * Splits the given content into a list of packets.
+	 * 
+	 * @param content String to be stored in the packets
+	 */
+	private void createPackets(String content) {
 		try {
 			byte[] bytes = content.getBytes("UTF-8");
-			int packetNum = (bytes.length/Packet.MAX_SIZE)+1;
-			for(int i = 0; i < packetNum ;i++){
-				int packetLength = (Packet.MAX_SIZE < bytes.length)? Packet.MAX_SIZE : bytes.length;
+			int packetNum = (bytes.length / Packet.MAX_SIZE) + 1;
+			
+			for(int i = 0; i < packetNum; i++) {
+				int packetLength = (Packet.MAX_SIZE < bytes.length) ? Packet.MAX_SIZE : bytes.length;
 				// packet number is in descending order
-				packets.add( new Packet( 2 , id, packetNum - i ,
-						Arrays.copyOfRange(bytes,i*Packet.MAX_SIZE, i*Packet.MAX_SIZE + packetLength))
+				packets.add( new Packet(2, id, packetNum - i,
+						Arrays.copyOfRange(bytes, i*Packet.MAX_SIZE, i*Packet.MAX_SIZE + packetLength))
 				);
 			}
 			
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			System.out.println("UnsupportedEncoding when creating packets: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 	//return number of packet
-	public int getSize(){
+	public int getSize() {
 		return packets.size();
 	}
-	public Packet getPacket(int id){
+	public Packet getPacket(int id) {
 		return packets.get(id); 
 	}
-	public int getID(){
+	public int getID() {
 		return id;
 	}
 

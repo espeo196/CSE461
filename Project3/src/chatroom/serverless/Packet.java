@@ -7,12 +7,12 @@ import java.util.Arrays;
  * @author benjamin
  *
  */
-public class Packet implements Comparable<Packet>{
+public class Packet implements Comparable<Packet> {
 	public static final int MAX_SIZE = 20;
 	public static final int HEADER_LENGTH = 12;
 	private byte[] content;
 	private int count;			// order of packet in a Message  ( reverse order )
-	private int type;			//
+	private int type;			// 0 = online; 1 = offline
 	private int id;
 	
 	/**get packet from byte array
@@ -34,8 +34,8 @@ public class Packet implements Comparable<Packet>{
 	 * @param packet packet receive
 	 * @throws UnsupportedEncodingException 
 	 */
-	public Packet(byte[] packet) throws UnsupportedEncodingException{
-		if(packet.length>MAX_SIZE){
+	public Packet(byte[] packet) throws UnsupportedEncodingException {
+		if(packet.length>MAX_SIZE) {
 			//error packet invalid
 		}
 		this.type = byteArrayToInt(Arrays.copyOfRange(packet, 0, 4), 0);
@@ -49,8 +49,8 @@ public class Packet implements Comparable<Packet>{
 	 * @param soureceName
 	 * @param content
 	 */
-	public Packet(int type, int id , int count, byte[] content){
-		if(content.length>MAX_SIZE-HEADER_LENGTH){
+	public Packet(int type, int id , int count, byte[] content) {
+		if(content.length>MAX_SIZE-HEADER_LENGTH) {
 			//error packet invalid
 		}
 		this.type = type;
@@ -62,7 +62,7 @@ public class Packet implements Comparable<Packet>{
 	 *  create byte array for sending transfer message
 	 * @return
 	 */
-	public byte[] createPacket(){
+	public byte[] createPacket() {
 		byte[] packet = new byte[content.length+HEADER_LENGTH];
 		System.arraycopy(intToByteArray(type), 0, packet, 0, 4);
 		System.arraycopy(intToByteArray(id), 0, packet, 4, 4);
@@ -74,34 +74,34 @@ public class Packet implements Comparable<Packet>{
 	
 	/**
 	 * creates ACK packets to acknowledge other client that it is connected or disconnected
-	 * type == 1 , count == 1, content = name
+	 * type == 0 , count == 1, content = name
 	 * @return
 	 */
-	public static byte[] createACK(String name){
+	public static byte[] createACK(String name) {
 		byte[] nameB = stringToByte(name);
 		Packet pk = new Packet(0, 0 , 1 , nameB);  
 		return pk.createPacket();
 	}
 	
-	public static byte[] createFIN(){
-		byte[] nameB = stringToByte(" ");
+	public static byte[] createFIN(String name) {
+		byte[] nameB = stringToByte(name);
 		Packet pk = new Packet(1, 0 , 1 , nameB);  
 		return pk.createPacket();
 	}
 	
-	public int getType(){
+	public int getType() {
 		return type;
 	}
-	public int getCount(){
+	public int getCount() {
 		return count;
 	}
-	public int getID(){
+	public int getID() {
 		return id;
 	}
-	public byte[] getContent(){
+	public byte[] getContent() {
 		return content;
 	}
-	public String getText() throws UnsupportedEncodingException{
+	public String getText() throws UnsupportedEncodingException {
 		//TODO: set encoding
 		return byteToString(content); 
 	}
@@ -112,17 +112,22 @@ public class Packet implements Comparable<Packet>{
 	 * @return
 	 */
 	@Override
-	public int compareTo(Packet other){
+	public int compareTo(Packet other) {
 		return other.count > this.count ? +1 : other.count < this.count ? -1 : 0;
 	}
 
-	/** print values
-	 * 
+	/** 
+	 * print values
 	 */
-	public String toString(){
+	public String toString() {
+		try {
+			return byteToString(content);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		return null;
-		
 	}
+	
 	/**
 	 * Convert String with ASCII encoding to byte[] 
 	 * with length divisible by 4 
