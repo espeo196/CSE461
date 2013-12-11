@@ -52,7 +52,10 @@ public class MulticastClient implements Runnable {
 					if(received.getType() == 0) {
 						// peer online, add to list
 						System.out.println(received.getText() + " is in the chatrooom");
-						ClientRunner.userList.add(received.getText());
+						
+						if(!ClientRunner.userList.contains(received.getText())) {
+							ClientRunner.userList.add(received.getText());							
+						}
 						
 						// let the new user know that you're connected
 						MulticastSender.send(Packet.createACK(ClientRunner.username), 
