@@ -53,8 +53,13 @@ public class FileProcessor {
 	public static void write(Message msg){
 		// TODO: fix the extra "null" output for the last packet
 		try{
-			String filename = msg.getPacket(0).getText();
+			String filename = msg.getPacket(0).getText().trim();
 			File f= new File(filename);
+			
+			if(!f.exists()) {
+				f.createNewFile();
+			}
+			
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f));
 			for(int i=1;i<msg.getSize();i++){
 				out.write(msg.getPacket(i).getContent());
