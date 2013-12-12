@@ -69,8 +69,8 @@ public class ConsoleUI implements Runnable {
 				// if user typed a command
 				if(message.trim().substring(0, 1).equals("/")) {
 					if(message.trim().equalsIgnoreCase(EXIT_STRING)) {
-						MulticastSender.send(Packet.createFIN(ClientRunner.username), ClientRunner.GROUP, ClientRunner.IN_PORT);
 						ClientRunner.runThreads = false;
+						MulticastSender.send(Packet.createFIN(ClientRunner.username), ClientRunner.GROUP, ClientRunner.IN_PORT);
 					} else if(message.trim().equalsIgnoreCase(HELP_STRING)) {
 						printCommands();
 					} else if(message.trim().equalsIgnoreCase(USERS_STRING)) {
