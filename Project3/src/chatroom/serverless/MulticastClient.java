@@ -49,7 +49,7 @@ public class MulticastClient implements Runnable {
 				// except for ACKS which are just 'username'
 				if(!received.getText().startsWith(ClientRunner.username)) {			
 				
-					if(received.getType() == 0) {
+					if(received.getType() == 0 && !ClientRunner.userList.contains(received.getText())) {
 						// peer online, add to list
 						System.out.println(received.getText() + " is in the chatrooom");
 						
