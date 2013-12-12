@@ -78,16 +78,16 @@ public class ConsoleUI implements Runnable {
 						for(String user : ClientRunner.userList) {
 							System.out.println("\t" + user);
 						}
+					} else if(message.trim().startsWith("/file") && message.split(" ").length == 2) {
+						MulticastSender.sendMessage(ClientRunner.username + " is sending a file.", ClientRunner.GROUP, ClientRunner.IN_PORT);
+						
+						//transfer file
+						Message msg = FileProcessor.read(message.split(" ")[1]);
+						MulticastSender.sendMessage(msg, ClientRunner.GROUP, ClientRunner.IN_PORT);
 					} else {
 						System.out.println("Invalid command. Valid commands are:\n ");
 						printCommands();
 					}
-				} else if(message.split(" ").length == 2 && message.split(" ")[0].equalsIgnoreCase("/file")) {
-					MulticastSender.sendMessage(ClientRunner.username + " is sending a file.", ClientRunner.GROUP, ClientRunner.IN_PORT);
-					
-					//transfer file
-					Message msg = FileProcessor.read(message.split(" ")[1]);
-					MulticastSender.sendMessage(msg, ClientRunner.GROUP, ClientRunner.IN_PORT);
 				} else {
 					MulticastSender.sendMessage(ClientRunner.username + ": " + message, ClientRunner.GROUP, ClientRunner.IN_PORT);
 				}
