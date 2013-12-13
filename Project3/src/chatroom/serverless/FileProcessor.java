@@ -51,11 +51,10 @@ public class FileProcessor {
 		return null;
 	}
 	public static void write(Message msg){
-		// TODO: fix the extra "null" output for the last packet
 		try{
-			String filename = msg.getPacket(0).getText().trim();
+			System.out.println("printing: "+msg.getPacket(0).toString());
+			String filename = msg.getPacket(0).getText();
 			File f= new File(filename);
-			
 			if(!f.exists()) {
 				f.createNewFile();
 			}

@@ -5,7 +5,10 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Primary runner for the serverless chatroom. Each client runs an instance of this class.
@@ -21,19 +24,22 @@ public class ClientRunner {
 	public static String GROUP = "225.4.5.14";
 	public static boolean runThreads = true;
 	public static String username = "";
-	public static List<String> userList = new ArrayList<String>(); 
+	public static InetAddress address ;
+	//public static List<String> userList = new ArrayList<String>();
+	//map address to name
+	public static Map<InetAddress, String> userList = new HashMap<InetAddress, String>();
 	
 	public static void main(String[] args) {		
 		System.setProperty("java.net.preferIPv4Stack", "true");
 		MulticastSocket mcs = null;
 		
-		// set the GROUP based on location
-//		try {
-//			GROUP = (InetAddress.getLocalHost()).getHostAddress();
-//		} catch (UnknownHostException e) {
-//			System.out.println("Exception when getting local host: " + e.getMessage());
-//			e.printStackTrace();
-//		}
+		try {
+			address = InetAddress.getLocalHost();
+		} catch (UnknownHostException e1) {
+			System.out.println("can't find address");
+			e1.printStackTrace();
+		}
+		
 		
 		// instantiates the MulticastSocket and joins the group
 		try {
@@ -86,5 +92,37 @@ public class ClientRunner {
 			System.out.println("Exception when attempting to leave chatroom: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Update the user list
+	 * @throws InterruptedException 
+	 */
+	public static void updateUsers() throws InterruptedException{
+		try {
+			userList.clear();
+			Thread.sleep(500);
+			MulticastSender.send(Packet.createAlive(), 
+					ClientRunner.GROUP, ClientRunner.IN_PORT);
+		} catch (IOException e) {
+			System.out.println("Exception when attempting to update users: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	/** 
+	 * send initiate signal
+	 * @throws UnknownHostException 
+	 */
+	public static void initiate(String name) throws UnknownHostException{
+		username = name;
+		userList.put(address, name);
+		try {
+			MulticastSender.send(Packet.createACK(name), GROUP, IN_PORT);
+			//MulticastSender.send(Packet.createAlive(), GROUP, IN_PORT);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

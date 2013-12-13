@@ -2,7 +2,9 @@ package chatroom.serverless;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -34,9 +36,13 @@ public class MulticastClient implements Runnable {
 				packet = new DatagramPacket(buf, buf.length);
 				mcs.receive(packet);
 				//process packet
-				Packet received = new Packet(packet.getData());
+				InetAddress senderAddress = packet.getAddress();
+				String sender = ClientRunner.userList.get(senderAddress);
+				Packet received = new Packet(Arrays.copyOfRange(packet.getData(),0,packet.getLength()));
 				// for debugging
-				/*System.out.println("Received packet from: " + packet.getAddress().toString() +
+				
+				/*
+				System.out.println("Received packet from: " + packet.getAddress().toString() +
 						":" + packet.getPort() + " with length: " +
 						packet.getLength() +
 						" id= " + received.getID()+
@@ -47,28 +53,32 @@ public class MulticastClient implements Runnable {
 				// don't print things from you!
 				// messages from you will always start with 'username: message'
 				// except for ACKS which are just 'username'
-				if(!received.getText().startsWith(ClientRunner.username)) {			
-				
-					if(received.getType() == 0 && !ClientRunner.userList.contains(received.getText())) {
+				if(!senderAddress.equals(ClientRunner.address)){			
+				//if(true){
+					if(received.getType() == 0) {
 						// peer online, add to list
-						System.out.println(received.getText() + " is in the chatrooom");
-						
-						if(!ClientRunner.userList.contains(received.getText())) {
-							ClientRunner.userList.add(received.getText());							
+						if(!ClientRunner.userList.containsKey(senderAddress) || !ClientRunner.userList.get(senderAddress).equals(received.getText())){
+									System.out.println(received.getText() + " is in the chatrooom");
 						}
-						
+						ClientRunner.userList.put(senderAddress, received.getText());							
 						// let the new user know that you're connected
+					}else if(received.getType() == 4){
 						MulticastSender.send(Packet.createACK(ClientRunner.username), 
 								ClientRunner.GROUP, ClientRunner.IN_PORT);
 					} else if(received.getType() == 1) {
 						// peer offline, remove from list
-						System.out.println(received.getText() + " has left the chatroom");
-						ClientRunner.userList.remove(received.getText());
+						sender = "unknown";
+						if(ClientRunner.userList.containsKey(senderAddress)){
+							sender = ClientRunner.userList.get(senderAddress);
+							ClientRunner.userList.remove(senderAddress);
+						}
+						System.out.println(sender+ " has left the chatroom");
+						
+						
 					} else if(received.getType() == 2) {
 						// received message packet, arrange the packet into corresponding message
 						if(messages.containsKey(received.getID())) {
 							messages.get(received.getID()).addPacket(received);
-	
 							//check if the message arrived completely
 							//assume packet arrives in order
 							if(received.getCount()==1) {
@@ -78,12 +88,14 @@ public class MulticastClient implements Runnable {
 						} else {
 							// print out directly
 							if(received.getCount() == 1) {
-								ConsoleUI.printReceive(received.getText());
+								ConsoleUI.printReceive(ClientRunner.userList.get(senderAddress),received.getText());
 							} else {
-								messages.put(received.getID(), new Message(received));
+								messages.put(received.getID(), new Message(received,senderAddress));
 							}
-						}					
+						}				
+						
 					} else if ( received.getType() == 3) {
+						
 						if(messages.containsKey(received.getID())) {
 							messages.get(received.getID()).addPacket(received);
 	
@@ -95,7 +107,8 @@ public class MulticastClient implements Runnable {
 							}
 							
 						} else {
-							messages.put(received.getID(), new Message(received));
+							System.out.println("Receiving file :"+received.getText()+"from "+ sender);
+							messages.put(received.getID(), new Message(received,senderAddress));
 						}					
 					}
 				}	

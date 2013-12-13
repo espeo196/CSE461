@@ -8,7 +8,7 @@ import java.util.Arrays;
  *
  */
 public class Packet implements Comparable<Packet> {
-	public static final int MAX_SIZE = 20;
+	public static final int MAX_SIZE = 1024;
 	public static final int HEADER_LENGTH = 12;
 	private byte[] content;
 	private int count;			// order of packet in a Message  ( reverse order )
@@ -68,13 +68,12 @@ public class Packet implements Comparable<Packet> {
 		System.arraycopy(intToByteArray(id), 0, packet, 4, 4);
 		System.arraycopy(intToByteArray(count), 0, packet, 8, 4);
 		System.arraycopy(content, 0, packet, 12, content.length);
-		
 		return packet;
 	}
 	
 	/**
 	 * creates ACK packets to acknowledge other client that it is connected or disconnected
-	 * type == 0 , count == 1, content = name
+	 * type == 0 , count == 1, content = name 
 	 * @return
 	 */
 	public static byte[] createACK(String name) {
@@ -82,10 +81,22 @@ public class Packet implements Comparable<Packet> {
 		Packet pk = new Packet(0, 0 , 1 , nameB);  
 		return pk.createPacket();
 	}
-	
-	public static byte[] createFIN(String name) {
-		byte[] nameB = stringToByte(name);
-		Packet pk = new Packet(1, 0 , 1 , nameB);  
+	/**
+	 * creates ACK packets to acknowledge other client that it is still alive
+	 * type == 4 , count == 1, content = name 
+	 * @return
+	 */
+	public static byte[] createAlive(){
+		Packet pk = new Packet(4, 0 , 1 ,new byte[0]);  
+		return pk.createPacket();
+	}
+	/**
+	 * creates FIN packets to acknowledge other client that it is about offline
+	 * type == 1 , count == 1, content = name 
+	 * @return
+	 */
+	public static byte[] createFIN() {
+		Packet pk = new Packet(1, 0 , 1 , new byte[0]);  
 		return pk.createPacket();
 	}
 	
@@ -103,7 +114,7 @@ public class Packet implements Comparable<Packet> {
 	}
 	public String getText() throws UnsupportedEncodingException {
 		//TODO: set encoding
-		return byteToString(content); 
+		return byteToString(content).trim(); 
 	}
 	
 	/**
