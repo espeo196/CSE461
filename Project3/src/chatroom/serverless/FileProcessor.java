@@ -54,7 +54,7 @@ public class FileProcessor {
 		try{
 			System.out.println("printing: "+msg.getPacket(0).toString());
 			String filename = msg.getPacket(0).getText();
-			File f= new File(filename);
+			File f= new File(FileProcessor.class.getProtectionDomain().getCodeSource().getLocation().getPath()+filename);
 			if(!f.exists()) {
 				f.createNewFile();
 			}
