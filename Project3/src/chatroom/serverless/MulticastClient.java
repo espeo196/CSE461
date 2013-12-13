@@ -62,7 +62,7 @@ public class MulticastClient implements Runnable {
 						}
 						ClientRunner.userList.put(senderAddress, received.getText());							
 						// let the new user know that you're connected
-					}else if(received.getType() == 4){
+					}else if(received.getType() == 4 && !ClientRunner.username.equals("")) {
 						MulticastSender.send(Packet.createACK(ClientRunner.username), 
 								ClientRunner.GROUP, ClientRunner.IN_PORT);
 					} else if(received.getType() == 1) {
