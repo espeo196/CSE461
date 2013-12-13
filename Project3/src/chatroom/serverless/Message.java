@@ -1,6 +1,8 @@
 package chatroom.serverless;
 
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,18 +16,21 @@ import java.util.Random;
  */
 public class Message {
 	private List<Packet> packets;
-	private int id; 
+	private int id;
+	private InetAddress senderAddress;
 	
-	public Message() {
+	public Message(){
 		Random rand = new Random();
 		id = rand.nextInt();
 		packets = new ArrayList<Packet>();
+		senderAddress = ClientRunner.address;
 	}
-	public Message(String content) {
-		this();		
+	public Message(String content) throws UnknownHostException  {
+		this();
 		createPackets(content);
 	}
-	public Message(Packet packet) {
+	public Message(Packet packet , InetAddress senderAddress) {
+		this.senderAddress = senderAddress;
 		id = packet.getID();
 		packets = new ArrayList<Packet>();
 		packets.add(packet);	
@@ -66,6 +71,9 @@ public class Message {
 	}
 	public int getID() {
 		return id;
+	}
+	public InetAddress getSenderAddress(){
+		return senderAddress;
 	}
 
 }

@@ -2,6 +2,7 @@ package chatroom.serverless;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -17,13 +18,15 @@ public class ConsoleUI implements Runnable {
 	Scanner console = new Scanner(System.in);
 	
 	@Override
-	public void run() {
+	public void run(){
 		try {
 			printIntro(console);
 			getInput(console);
 			printOutro();
 		} catch (IOException e) {
 			System.out.println("IOException occurred: " + e.getMessage());
+			e.printStackTrace();
+		} catch (InterruptedException e){
 			e.printStackTrace();
 		}
 		console.close();
@@ -34,8 +37,9 @@ public class ConsoleUI implements Runnable {
 	 * Also, sends a message stating that the user has joined the chatroom.
 	 * 
 	 * @throws IOException if there's a problem sending the username ACK.
+	 * @throws InterruptedException 
 	 */
-	public void printIntro(Scanner console) throws IOException	{
+	public void printIntro(Scanner console) throws IOException, InterruptedException	{
 		System.out.println("**********************************************************");
 		System.out.println("Welcome to the serverless chatroom.");
 		System.out.println("You will be connected to the chatroom for your local area.");
@@ -45,11 +49,11 @@ public class ConsoleUI implements Runnable {
 		
 		System.out.println();
 		System.out.println("What's your username? ");
-		ClientRunner.username = console.nextLine();
-		ClientRunner.userList.add(ClientRunner.username);
-		
-		MulticastSender.send(Packet.createACK(ClientRunner.username), ClientRunner.GROUP, ClientRunner.IN_PORT);
-		
+		String name = console.nextLine();
+		ClientRunner.initiate(name);
+		ClientRunner.updateUsers();
+		//Thread.sleep(1000);
+		//printUsers();
 	}
 	
 	/**
@@ -57,8 +61,9 @@ public class ConsoleUI implements Runnable {
 	 * Exits when the user types "exit" case insensitive.
 	 * 
 	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
-	public void getInput(Scanner console) throws IOException {
+	public void getInput(Scanner console) throws IOException, InterruptedException {
 		String message = null;
 		
 		while(ClientRunner.runThreads) {
@@ -68,28 +73,31 @@ public class ConsoleUI implements Runnable {
 					&& !message.trim().equals("\n")) {
 				// if user typed a command
 				if(message.trim().substring(0, 1).equals("/")) {
+					//exit
 					if(message.trim().equalsIgnoreCase(EXIT_STRING)) {
 						ClientRunner.runThreads = false;
-						MulticastSender.send(Packet.createFIN(ClientRunner.username), ClientRunner.GROUP, ClientRunner.IN_PORT);
+						MulticastSender.send(Packet.createFIN(), ClientRunner.GROUP, ClientRunner.IN_PORT);
+						
+					//help
 					} else if(message.trim().equalsIgnoreCase(HELP_STRING)) {
 						printCommands();
+					//users
 					} else if(message.trim().equalsIgnoreCase(USERS_STRING)) {
-						System.out.println("Users: ");
-						for(String user : ClientRunner.userList) {
-							System.out.println("\t" + user);
-						}
+						ClientRunner.updateUsers();
+						//wait for users to response
+						Thread.sleep(1000);
+						printUsers();
+					//file transfer
 					} else if(message.trim().startsWith("/file") && message.split(" ").length == 2) {
-						MulticastSender.sendMessage(ClientRunner.username + " is sending a file.", ClientRunner.GROUP, ClientRunner.IN_PORT);
-						
-						//transfer file
 						Message msg = FileProcessor.read(message.split(" ")[1]);
 						MulticastSender.sendMessage(msg, ClientRunner.GROUP, ClientRunner.IN_PORT);
+					//invalid commands
 					} else {
 						System.out.println("Invalid command. Valid commands are:\n ");
 						printCommands();
 					}
 				} else {
-					MulticastSender.sendMessage(ClientRunner.username + ": " + message, ClientRunner.GROUP, ClientRunner.IN_PORT);
+					MulticastSender.sendMessage(message, ClientRunner.GROUP, ClientRunner.IN_PORT);
 				}
 			}
 		}	
@@ -99,7 +107,7 @@ public class ConsoleUI implements Runnable {
 		System.out.println("Commands: ");
 		System.out.println("'/exit' to leave the chatroom.");
 		System.out.println("'/users' to see a list of joined users.");
-		System.out.println("'/file filename' to send a file with size < 5 MB.");
+		System.out.println("'/file filename' to send a file");
 		System.out.println("'/help' to reprint the list of commands.");
 		System.out.println("**********************************************************\n");
 	}
@@ -114,19 +122,31 @@ public class ConsoleUI implements Runnable {
 	 * @param sender String name of the sender
 	 * @param content
 	 */
-	public static void printReceive(String content) {
+	public static void printReceive(String sender, String content) {
 		Date date = new Date();
-		System.out.printf("[%2$tT %2$tm/%2$td] : %1$s \n", 
-                content, date);
+		System.out.printf("%3$s [%2$tT %2$tm/%2$td] : %1$s \n", 
+                content, date, sender);
 	}
 	
 	public static void printReceive(Message message) throws UnsupportedEncodingException {
 		Date date = new Date();
-		System.out.printf(" [%1$tT %1$tm/%1$td] : ", date);
+		String username = ClientRunner.userList.get(message.getSenderAddress());
+		System.out.printf("%2$s [%1$tT %1$tm/%1$td] : ", date , username);
 		for(int i=0; i < message.getSize(); i++) {
 			System.out.print(message.getPacket(i).getText());
 		}
 		System.out.println();
+	}
+	
+	public static void printUsers(){
+		if(ClientRunner.userList.isEmpty()){
+			System.out.println("no active users");
+		}else{
+			System.out.println("Users: ");
+			for(InetAddress useradd : ClientRunner.userList.keySet()) {
+				System.out.println("\t" + useradd.toString() +":"+ ClientRunner.userList.get(useradd));
+			}
+		}
 	}
 
 }
